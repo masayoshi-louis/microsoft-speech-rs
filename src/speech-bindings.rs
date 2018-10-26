@@ -2892,3 +2892,39 @@ extern "C" {
         hpropbag: *mut SPXPROPERTYBAGHANDLE,
     ) -> SPXHR;
 }
+pub const SpeechOutputFormat_SpeechOutputFormat_Simple: SpeechOutputFormat = 0;
+pub const SpeechOutputFormat_SpeechOutputFormat_Detailed: SpeechOutputFormat = 1;
+pub type SpeechOutputFormat = u32;
+extern "C" {
+    pub fn speech_config_is_handle_valid(hconfig: SPXSPEECHCONFIGHANDLE) -> bool;
+}
+extern "C" {
+    pub fn speech_config_from_subscription(
+        hconfig: *mut SPXSPEECHCONFIGHANDLE,
+        subscription: *const ::std::os::raw::c_char,
+        region: *const ::std::os::raw::c_char,
+    ) -> SPXHR;
+}
+extern "C" {
+    pub fn speech_config_from_authorization_token(
+        hconfig: *mut SPXSPEECHCONFIGHANDLE,
+        authToken: *const ::std::os::raw::c_char,
+        region: *const ::std::os::raw::c_char,
+    ) -> SPXHR;
+}
+extern "C" {
+    pub fn speech_config_from_endpoint(
+        hconfig: *mut SPXSPEECHCONFIGHANDLE,
+        endpoint: *const ::std::os::raw::c_char,
+        subscription: *const ::std::os::raw::c_char,
+    ) -> SPXHR;
+}
+extern "C" {
+    pub fn speech_config_release(hconfig: SPXSPEECHCONFIGHANDLE) -> SPXHR;
+}
+extern "C" {
+    pub fn speech_config_get_property_bag(
+        hconfig: SPXSPEECHCONFIGHANDLE,
+        hpropbag: *mut SPXPROPERTYBAGHANDLE,
+    ) -> SPXHR;
+}
