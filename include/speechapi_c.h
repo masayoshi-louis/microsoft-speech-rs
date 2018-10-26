@@ -25,3 +25,4 @@
 #include "speechapi_c_recognizer.h"
 #include "speechapi_c_result.h"
 #include "speechapi_c_session.h"
+#include "speechapi_c_speech_config.h"
