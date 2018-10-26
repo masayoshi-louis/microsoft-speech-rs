@@ -1,0 +1,6 @@
+[package]
+name = "microsoft-asr-rs"
+version = "0.1.0"
+authors = ["luyi <luyi@newtranx.com>"]
+
+[dependencies]
