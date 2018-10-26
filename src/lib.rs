@@ -29,10 +29,7 @@ impl SpeechConfig {
             handle: 0 as SPXSPEECHCONFIGHANDLE,
         };
         unsafe {
-            let hr = speech_config_from_subscription(&mut result.handle, c_sub.as_ptr(), c_region.as_ptr());
-            if hr != SPX_NOERROR {
-                return Err(SpxError::General(hr));
-            }
+            check_err(speech_config_from_subscription(&mut result.handle, c_sub.as_ptr(), c_region.as_ptr()))?;
         }
         return Ok(result);
     }
@@ -42,4 +39,11 @@ impl From<ffi::NulError> for SpxError {
     fn from(err: ffi::NulError) -> Self {
         return SpxError::StrNulError(err);
     }
+}
+
+fn check_err(hr: usize) -> Result<(), SpxError> {
+    if hr != SPX_NOERROR {
+        return Err(SpxError::General(hr));
+    }
+    return Ok(());
 }
