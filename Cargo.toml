@@ -1,6 +1,8 @@
 [package]
-name = "microsoft-asr-rs"
+name = "microsoft_speech"
 version = "0.1.0"
 authors = ["luyi <luyi@newtranx.com>"]
 
 [dependencies]
+log = "0.4.3"
+env_logger = "0.5"
