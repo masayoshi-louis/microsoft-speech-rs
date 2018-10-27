@@ -53,9 +53,9 @@ impl PushAudioInputStream {
         Ok(result)
     }
 
-    pub fn write<T: AsRef<[u8]>>(&self, data_buffer: T, size: u32) -> Result<(), SpxError> {
+    pub fn write(&self, data_buffer: &[u8], size: u32) -> Result<(), SpxError> {
         unsafe {
-            convert_err(push_audio_input_stream_write(self.handle, data_buffer.as_ref().as_ptr(), size))
+            convert_err(push_audio_input_stream_write(self.handle, data_buffer.as_ptr(), size))
         }
     }
 
