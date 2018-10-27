@@ -5,8 +5,9 @@ use SpxError;
 use SPXHANDLE_INVALID;
 use std::ops::Deref;
 use std::ops::DerefMut;
+use std::sync::Arc;
 
-pub trait StreamWriter {
+pub trait AudioStreamSink {
     fn write(&self, buf: &[u8]) -> Result<(), SpxError>;
 
     fn close(&self) -> Result<(), SpxError>;
@@ -18,8 +19,9 @@ pub trait AudioInputStream {
 
 impl AudioInputStream {
     #[inline(always)]
-    pub fn create_push_stream(format: Option<AudioStreamFormat>) -> Result<impl AudioInputStream + StreamWriter, SpxError> {
-        return PushAudioInputStream::create(format);
+    pub fn create_push_stream(format: Option<AudioStreamFormat>) -> Result<(Arc<dyn AudioInputStream>, Arc<dyn AudioStreamSink>), SpxError> {
+        let arc = Arc::new(PushAudioInputStream::create(format)?);
+        Ok((arc.clone(), arc))
     }
 }
 
@@ -60,20 +62,6 @@ impl PushAudioInputStream {
     }
 }
 
-impl StreamWriter for PushAudioInputStream {
-    fn write(&self, buf: &[u8]) -> Result<(), SpxError> {
-        unsafe {
-            convert_err(push_audio_input_stream_write(self.handle, buf.as_ptr(), buf.len() as u32))
-        }
-    }
-
-    fn close(&self) -> Result<(), SpxError> {
-        unsafe {
-            convert_err(push_audio_input_stream_close(self.handle))
-        }
-    }
-}
-
 impl Drop for PushAudioInputStream {
     fn drop(&mut self) {
         unsafe {
@@ -87,6 +75,20 @@ impl Drop for PushAudioInputStream {
 impl AudioInputStream for PushAudioInputStream {
     fn get_handle(&self) -> SPXAUDIOSTREAMHANDLE {
         self.base.handle
+    }
+}
+
+impl AudioStreamSink for PushAudioInputStream {
+    fn write(&self, buf: &[u8]) -> Result<(), SpxError> {
+        unsafe {
+            convert_err(push_audio_input_stream_write(self.handle, buf.as_ptr(), buf.len() as u32))
+        }
+    }
+
+    fn close(&self) -> Result<(), SpxError> {
+        unsafe {
+            convert_err(push_audio_input_stream_close(self.handle))
+        }
     }
 }
 
