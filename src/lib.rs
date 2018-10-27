@@ -40,6 +40,10 @@ pub struct SmartHandle<T: Copy> {
 }
 
 impl<T: Copy> SmartHandle<T> {
+    fn create(handle: T, release_fn: unsafe extern "C" fn(T) -> SPXHR) -> SmartHandle<T> {
+        SmartHandle { internal: handle, release_fn }
+    }
+
     #[inline(always)]
     fn get(&self) -> T {
         self.internal
@@ -55,9 +59,3 @@ impl<T: Copy> Drop for SmartHandle<T> {
 }
 
 unsafe impl<T: Copy> Send for SmartHandle<T> {}
-
-impl<T: Copy> SmartHandle<T> {
-    fn create(handle: T, release_fn: unsafe extern "C" fn(T) -> SPXHR) -> SmartHandle<T> {
-        SmartHandle { internal: handle, release_fn }
-    }
-}

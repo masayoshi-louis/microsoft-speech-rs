@@ -2746,14 +2746,14 @@ extern "C" {
     pub fn recognizer_session_started_set_callback(
         hreco: SPXRECOHANDLE,
         pCallback: PSESSION_CALLBACK_FUNC,
-        pvContext: *mut ::std::os::raw::c_void,
+        pvContext: *const ::std::os::raw::c_void,
     ) -> SPXHR;
 }
 extern "C" {
     pub fn recognizer_session_stopped_set_callback(
         hreco: SPXRECOHANDLE,
         pCallback: PSESSION_CALLBACK_FUNC,
-        pvContext: *mut ::std::os::raw::c_void,
+        pvContext: *const ::std::os::raw::c_void,
     ) -> SPXHR;
 }
 pub type PRECOGNITION_CALLBACK_FUNC = ::std::option::Option<
@@ -2767,35 +2767,35 @@ extern "C" {
     pub fn recognizer_recognizing_set_callback(
         hreco: SPXRECOHANDLE,
         pCallback: PRECOGNITION_CALLBACK_FUNC,
-        pvContext: *mut ::std::os::raw::c_void,
+        pvContext: *const ::std::os::raw::c_void,
     ) -> SPXHR;
 }
 extern "C" {
     pub fn recognizer_recognized_set_callback(
         hreco: SPXRECOHANDLE,
         pCallback: PRECOGNITION_CALLBACK_FUNC,
-        pvContext: *mut ::std::os::raw::c_void,
+        pvContext: *const ::std::os::raw::c_void,
     ) -> SPXHR;
 }
 extern "C" {
     pub fn recognizer_canceled_set_callback(
         hreco: SPXRECOHANDLE,
         pCallback: PRECOGNITION_CALLBACK_FUNC,
-        pvContext: *mut ::std::os::raw::c_void,
+        pvContext: *const ::std::os::raw::c_void,
     ) -> SPXHR;
 }
 extern "C" {
     pub fn recognizer_speech_start_detected_set_callback(
         hreco: SPXRECOHANDLE,
         pCallback: PRECOGNITION_CALLBACK_FUNC,
-        pvContext: *mut ::std::os::raw::c_void,
+        pvContext: *const ::std::os::raw::c_void,
     ) -> SPXHR;
 }
 extern "C" {
     pub fn recognizer_speech_end_detected_set_callback(
         hreco: SPXRECOHANDLE,
         pCallback: PRECOGNITION_CALLBACK_FUNC,
-        pvContext: *mut ::std::os::raw::c_void,
+        pvContext: *const ::std::os::raw::c_void,
     ) -> SPXHR;
 }
 extern "C" {
