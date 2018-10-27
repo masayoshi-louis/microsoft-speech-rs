@@ -58,6 +58,22 @@ impl PushAudioInputStream {
             convert_err(push_audio_input_stream_write(self.handle, data_buffer.as_ref().as_ptr(), size))
         }
     }
+
+    pub fn close(&self) -> Result<(), SpxError> {
+        unsafe {
+            convert_err(push_audio_input_stream_close(self.handle))
+        }
+    }
+}
+
+impl Drop for PushAudioInputStream {
+    fn drop(&mut self) {
+        unsafe {
+            if audio_stream_is_handle_valid(self.handle) {
+                self.close();
+            }
+        }
+    }
 }
 
 impl AudioInputStream for PushAudioInputStream {
@@ -74,7 +90,7 @@ impl Deref for PushAudioInputStream {
     }
 }
 
-impl DerefMut for PushAudioInputStream{
+impl DerefMut for PushAudioInputStream {
     fn deref_mut(&mut self) -> &mut BaseAudioInputStream {
         &mut self.base
     }
