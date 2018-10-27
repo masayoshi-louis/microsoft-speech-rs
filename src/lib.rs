@@ -8,6 +8,8 @@ use std::ffi;
 mod speech_api;
 pub mod speech;
 
+const SPXHANDLE_INVALID: SPXHANDLE = 0 as SPXHANDLE;
+
 #[derive(Fail, Debug)]
 pub enum SpxError {
     #[fail(display = "Speech API error code: {}.", _0)]

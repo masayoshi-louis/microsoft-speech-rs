@@ -3,6 +3,7 @@ pub use self::stream::AudioInputStream;
 pub use self::stream_format::AudioStreamFormat;
 use speech_api::*;
 use SpxError;
+use SPXHANDLE_INVALID;
 use std::ffi;
 use std::sync::Arc;
 
@@ -17,7 +18,7 @@ pub struct AudioConfig {
 impl AudioConfig {
     pub fn from_stream_input(stream: Arc<dyn AudioInputStream>) -> Result<AudioConfig, SpxError> {
         let mut result = AudioConfig {
-            handle: 0 as SPXAUDIOCONFIGHANDLE,
+            handle: SPXHANDLE_INVALID,
             stream,
         };
         unsafe {

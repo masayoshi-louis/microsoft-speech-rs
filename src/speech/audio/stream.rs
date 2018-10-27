@@ -2,6 +2,7 @@ use convert_err;
 use speech::audio::AudioStreamFormat;
 use speech_api::*;
 use SpxError;
+use SPXHANDLE_INVALID;
 use std::ops::Deref;
 
 pub trait AudioInputStream {
@@ -10,13 +11,13 @@ pub trait AudioInputStream {
 
 impl AudioInputStream {
     #[inline(always)]
-    pub fn create_push_stream(format: Option<AudioStreamFormat>) -> Result<impl AudioInputStream, SpxError> {
+    pub fn create_push_stream(format: Option<AudioStreamFormat>) -> Result<PushAudioInputStream, SpxError> {
         return PushAudioInputStream::create(format);
     }
 }
 
 #[derive(Debug)]
-struct BaseAudioInputStream {
+pub struct BaseAudioInputStream {
     handle: SPXAUDIOSTREAMHANDLE,
     format: AudioStreamFormat,
 }
@@ -30,7 +31,7 @@ impl Drop for BaseAudioInputStream {
 }
 
 #[derive(Debug)]
-struct PushAudioInputStream {
+pub struct PushAudioInputStream {
     base: BaseAudioInputStream,
 }
 
@@ -41,7 +42,7 @@ impl PushAudioInputStream {
             .unwrap_or_else(|| { AudioStreamFormat::get_default_input_format() })?;
         let mut result = PushAudioInputStream {
             base: BaseAudioInputStream {
-                handle: 0 as SPXAUDIOSTREAMHANDLE,
+                handle: SPXHANDLE_INVALID,
                 format,
             }
         };
@@ -49,6 +50,12 @@ impl PushAudioInputStream {
             convert_err(audio_stream_create_push_audio_input_stream(&mut result.handle, result.format.get_handle()))?;
         }
         Ok(result)
+    }
+
+    pub fn write<T: AsRef<[u8]>>(&self, data_buffer: &T, size: u32) -> Result<(), SpxError> {
+        unsafe {
+            convert_err(push_audio_input_stream_write(self.handle, data_buffer.as_ref().as_ptr(), size))
+        }
     }
 }
 

@@ -2550,7 +2550,7 @@ extern "C" {
 extern "C" {
     pub fn push_audio_input_stream_write(
         haudioStream: SPXAUDIOSTREAMHANDLE,
-        buffer: *mut u8,
+        buffer: *const u8,
         size: u32,
     ) -> SPXHR;
 }

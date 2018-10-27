@@ -1,6 +1,7 @@
 use convert_err;
 use speech_api::*;
 use SpxError;
+use SPXHANDLE_INVALID;
 use std::ffi;
 
 #[derive(Debug)]
@@ -11,7 +12,7 @@ pub struct AudioStreamFormat {
 impl AudioStreamFormat {
     pub fn get_default_input_format() -> Result<AudioStreamFormat, SpxError> {
         let mut result = AudioStreamFormat {
-            handle: 0 as SPXAUDIOSTREAMFORMATHANDLE,
+            handle: SPXHANDLE_INVALID,
         };
         unsafe {
             convert_err(audio_stream_format_create_from_default_input(&mut result.handle))?;
@@ -21,7 +22,7 @@ impl AudioStreamFormat {
 
     pub fn get_wave_format_pcm(samples_per_second: u32, bits_per_sample: Option<u8>, channels: Option<u8>) -> Result<AudioStreamFormat, SpxError> {
         let mut result = AudioStreamFormat {
-            handle: 0 as SPXAUDIOSTREAMFORMATHANDLE,
+            handle: SPXHANDLE_INVALID,
         };
         unsafe {
             convert_err(audio_stream_format_create_from_waveformat_pcm(

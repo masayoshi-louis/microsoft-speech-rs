@@ -1,6 +1,7 @@
 use convert_err;
 use speech_api::*;
 use SpxError;
+use SPXHANDLE_INVALID;
 use std::ffi;
 use std::ffi::CString;
 
@@ -17,7 +18,7 @@ impl SpeechConfig {
         let c_sub = CString::new(subscription)?;
         let c_region = CString::new(region)?;
         let mut result = SpeechConfig {
-            handle: 0 as SPXSPEECHCONFIGHANDLE,
+            handle: SPXHANDLE_INVALID,
         };
         unsafe {
             convert_err(speech_config_from_subscription(&mut result.handle, c_sub.as_ptr(), c_region.as_ptr()))?;
