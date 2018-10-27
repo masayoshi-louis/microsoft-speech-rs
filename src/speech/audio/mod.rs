@@ -1,4 +1,4 @@
-use check_err;
+use convert_err;
 pub use self::stream::AudioInputStream;
 pub use self::stream_format::AudioStreamFormat;
 use speech_api::*;
@@ -21,7 +21,7 @@ impl AudioConfig {
             stream,
         };
         unsafe {
-            check_err(audio_config_create_audio_input_from_stream(&mut result.handle, result.stream.get_handle()))?;
+            convert_err(audio_config_create_audio_input_from_stream(&mut result.handle, result.stream.get_handle()))?;
         }
         Ok(result)
     }

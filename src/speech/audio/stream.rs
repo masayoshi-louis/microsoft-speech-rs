@@ -1,7 +1,8 @@
-use check_err;
+use convert_err;
 use speech::audio::AudioStreamFormat;
 use speech_api::*;
 use SpxError;
+use std::ops::Deref;
 
 pub trait AudioInputStream {
     fn get_handle(&self) -> SPXAUDIOSTREAMHANDLE;
@@ -45,7 +46,7 @@ impl PushAudioInputStream {
             }
         };
         unsafe {
-            check_err(audio_stream_create_push_audio_input_stream(&mut result.base.handle, result.base.format.get_handle()))?;
+            convert_err(audio_stream_create_push_audio_input_stream(&mut result.handle, result.format.get_handle()))?;
         }
         Ok(result)
     }
@@ -54,5 +55,13 @@ impl PushAudioInputStream {
 impl AudioInputStream for PushAudioInputStream {
     fn get_handle(&self) -> SPXAUDIOSTREAMHANDLE {
         self.base.handle
+    }
+}
+
+impl Deref for PushAudioInputStream {
+    type Target = BaseAudioInputStream;
+
+    fn deref(&self) -> &BaseAudioInputStream {
+        &self.base
     }
 }

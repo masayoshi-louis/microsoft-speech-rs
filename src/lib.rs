@@ -23,7 +23,7 @@ impl From<ffi::NulError> for SpxError {
 }
 
 #[inline(always)]
-fn check_err(hr: usize) -> Result<(), SpxError> {
+fn convert_err(hr: usize) -> Result<(), SpxError> {
     if hr != SPX_NOERROR {
         return Err(SpxError::General(hr));
     }

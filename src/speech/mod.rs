@@ -1,4 +1,4 @@
-use check_err;
+use convert_err;
 use speech_api::*;
 use SpxError;
 use std::ffi;
@@ -20,7 +20,7 @@ impl SpeechConfig {
             handle: 0 as SPXSPEECHCONFIGHANDLE,
         };
         unsafe {
-            check_err(speech_config_from_subscription(&mut result.handle, c_sub.as_ptr(), c_region.as_ptr()))?;
+            convert_err(speech_config_from_subscription(&mut result.handle, c_sub.as_ptr(), c_region.as_ptr()))?;
         }
         Ok(result)
     }
