@@ -6,13 +6,19 @@ use SPXHANDLE_INVALID;
 use std::ops::Deref;
 use std::ops::DerefMut;
 
+pub trait StreamWriter {
+    fn write(&self, buf: &[u8]) -> Result<(), SpxError>;
+
+    fn close(&self) -> Result<(), SpxError>;
+}
+
 pub trait AudioInputStream {
     fn get_handle(&self) -> SPXAUDIOSTREAMHANDLE;
 }
 
 impl AudioInputStream {
     #[inline(always)]
-    pub fn create_push_stream(format: Option<AudioStreamFormat>) -> Result<PushAudioInputStream, SpxError> {
+    pub fn create_push_stream(format: Option<AudioStreamFormat>) -> Result<impl AudioInputStream + StreamWriter, SpxError> {
         return PushAudioInputStream::create(format);
     }
 }
@@ -52,14 +58,16 @@ impl PushAudioInputStream {
         }
         Ok(result)
     }
+}
 
-    pub fn write(&self, data_buffer: &[u8], size: u32) -> Result<(), SpxError> {
+impl StreamWriter for PushAudioInputStream {
+    fn write(&self, buf: &[u8]) -> Result<(), SpxError> {
         unsafe {
-            convert_err(push_audio_input_stream_write(self.handle, data_buffer.as_ptr(), size))
+            convert_err(push_audio_input_stream_write(self.handle, buf.as_ptr(), buf.len() as u32))
         }
     }
 
-    pub fn close(&self) -> Result<(), SpxError> {
+    fn close(&self) -> Result<(), SpxError> {
         unsafe {
             convert_err(push_audio_input_stream_close(self.handle))
         }

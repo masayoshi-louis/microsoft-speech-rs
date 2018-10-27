@@ -1,5 +1,6 @@
 use convert_err;
 pub use self::stream::AudioInputStream;
+pub use self::stream::StreamWriter;
 pub use self::stream_format::AudioStreamFormat;
 use speech_api::*;
 use SpxError;
