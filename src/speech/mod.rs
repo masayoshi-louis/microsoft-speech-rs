@@ -6,6 +6,7 @@ use std::ffi;
 use std::ffi::CString;
 
 pub mod audio;
+pub mod recognizer;
 
 #[derive(Debug)]
 pub struct SpeechConfig {

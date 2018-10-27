@@ -1,6 +1,7 @@
 extern crate failure;
 #[macro_use]
 extern crate failure_derive;
+extern crate futures;
 
 use speech_api::*;
 use std::ffi;
@@ -30,4 +31,33 @@ fn convert_err(hr: usize) -> Result<(), SpxError> {
         return Err(SpxError::General(hr));
     }
     return Ok(());
+}
+
+#[derive(Debug)]
+pub struct SmartHandle<T: Copy + 'static> {
+    internal: T,
+    release_fn: unsafe extern "C" fn(T) -> SPXHR,
+}
+
+impl<T: Copy> SmartHandle<T> {
+    #[inline(always)]
+    fn get(&self) -> T {
+        self.internal
+    }
+}
+
+impl<T: Copy> Drop for SmartHandle<T> {
+    fn drop(&mut self) {
+        unsafe {
+            (self.release_fn)(self.internal);
+        }
+    }
+}
+
+unsafe impl<T: Copy> Send for SmartHandle<T> {}
+
+impl<T: Copy> SmartHandle<T> {
+    fn create(handle: T, release_fn: unsafe extern "C" fn(T) -> SPXHR) -> SmartHandle<T> {
+        SmartHandle { internal: handle, release_fn }
+    }
 }
