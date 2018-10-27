@@ -16,7 +16,7 @@ impl AudioStreamFormat {
         unsafe {
             convert_err(audio_stream_format_create_from_default_input(&mut handle))?;
         }
-        let mut result = AudioStreamFormat {
+        let result = AudioStreamFormat {
             handle: SmartHandle::create(handle, audio_stream_format_release),
         };
         Ok(result)
@@ -32,7 +32,7 @@ impl AudioStreamFormat {
                 channels.unwrap_or(1),
             ))?;
         }
-        let mut result = AudioStreamFormat {
+        let result = AudioStreamFormat {
             handle: SmartHandle::create(handle, audio_stream_format_release),
         };
         Ok(result)

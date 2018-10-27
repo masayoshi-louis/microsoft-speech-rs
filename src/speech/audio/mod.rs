@@ -26,7 +26,7 @@ impl<S: AsRef<dyn AudioInputStream>> AudioConfig<S> {
                 stream.as_ref().get_handle(),
             ))?;
         }
-        let mut result = AudioConfig {
+        let result = AudioConfig {
             handle: SmartHandle::create(handle, audio_config_release),
             stream,
         };

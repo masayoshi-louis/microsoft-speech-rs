@@ -46,7 +46,7 @@ impl PushAudioInputStream {
         unsafe {
             convert_err(audio_stream_create_push_audio_input_stream(&mut handle, format.get_handle()))?;
         }
-        let mut result = PushAudioInputStream {
+        let result = PushAudioInputStream {
             base: BaseAudioInputStream {
                 handle: SmartHandle::create(handle, audio_stream_release),
                 format,

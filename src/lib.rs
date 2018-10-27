@@ -34,7 +34,7 @@ fn convert_err(hr: usize) -> Result<(), SpxError> {
 }
 
 #[derive(Debug)]
-pub struct SmartHandle<T: Copy + 'static> {
+pub struct SmartHandle<T: Copy> {
     internal: T,
     release_fn: unsafe extern "C" fn(T) -> SPXHR,
 }
