@@ -4,6 +4,7 @@ use speech_api::*;
 use SpxError;
 use SPXHANDLE_INVALID;
 use std::ops::Deref;
+use std::ops::DerefMut;
 
 pub trait AudioInputStream {
     fn get_handle(&self) -> SPXAUDIOSTREAMHANDLE;
@@ -70,5 +71,11 @@ impl Deref for PushAudioInputStream {
 
     fn deref(&self) -> &BaseAudioInputStream {
         &self.base
+    }
+}
+
+impl DerefMut for PushAudioInputStream{
+    fn deref_mut(&mut self) -> &mut BaseAudioInputStream {
+        &mut self.base
     }
 }
