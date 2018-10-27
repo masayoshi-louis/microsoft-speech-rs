@@ -2445,7 +2445,7 @@ extern "C" {
     ) -> SPXHR;
 }
 pub type PTRANSLATIONSYNTHESIS_CALLBACK_FUNC = ::std::option::Option<
-    unsafe extern "C" fn(
+    fn(
         hreco: SPXRECOHANDLE,
         hevent: SPXEVENTHANDLE,
         pvContext: *mut ::std::os::raw::c_void,
@@ -2736,7 +2736,7 @@ extern "C" {
     ) -> SPXHR;
 }
 pub type PSESSION_CALLBACK_FUNC = ::std::option::Option<
-    unsafe extern "C" fn(
+    fn(
         hreco: SPXRECOHANDLE,
         hevent: SPXEVENTHANDLE,
         pvContext: *mut ::std::os::raw::c_void,
@@ -2757,7 +2757,7 @@ extern "C" {
     ) -> SPXHR;
 }
 pub type PRECOGNITION_CALLBACK_FUNC = ::std::option::Option<
-    unsafe extern "C" fn(
+    fn(
         hreco: SPXRECOHANDLE,
         hevent: SPXEVENTHANDLE,
         pvContext: *mut ::std::os::raw::c_void,

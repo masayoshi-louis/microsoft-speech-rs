@@ -1,8 +1,13 @@
 use convert_err;
 pub use self::async_handle::AsyncHandle;
 use SmartHandle;
+use speech::audio::AudioConfig;
+use speech::audio::AudioInputStream;
+use speech::SpeechConfig;
 use speech_api::*;
 use SpxError;
+use SPXHANDLE_INVALID;
+use std::ffi::c_void;
 use std::ops::Deref;
 
 mod async_handle;
@@ -81,6 +86,42 @@ impl AsyncRecognizer for AbstractAsyncRecognizer {
 
 impl Deref for AbstractAsyncRecognizer {
     type Target = dyn Recognizer;
+
+    fn deref(&self) -> &Self::Target {
+        &self.base
+    }
+}
+
+impl AbstractAsyncRecognizer {
+    fn create(handle: SPXRECOHANDLE) -> Result<AbstractAsyncRecognizer, SpxError> {
+        Ok(AbstractAsyncRecognizer {
+            base: BaseRecognizer::create(handle)?,
+        })
+    }
+}
+
+pub struct SpeechRecognizer {
+    base: AbstractAsyncRecognizer,
+}
+
+impl SpeechRecognizer {
+    pub fn from_config<S>(config: SpeechConfig, audio: AudioConfig<S>) -> Result<SpeechRecognizer, SpxError>
+        where S: AsRef<dyn AudioInputStream> {
+        let mut handle = SPXHANDLE_INVALID;
+        unsafe {
+            convert_err(recognizer_create_speech_recognizer_from_config(&mut handle, config.get_handle(), audio.get_handle()))?;
+            recognizer_recognizing_set_callback(handle, Some(|h, e, c| {
+                println!("test recognizing");
+            }), 0 as *mut c_void);
+        }
+        Ok(SpeechRecognizer {
+            base: AbstractAsyncRecognizer::create(handle)?,
+        })
+    }
+}
+
+impl Deref for SpeechRecognizer {
+    type Target = dyn AsyncRecognizer<Target=dyn Recognizer>;
 
     fn deref(&self) -> &Self::Target {
         &self.base

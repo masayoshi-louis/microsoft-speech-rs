@@ -4,13 +4,14 @@ use SpxError;
 use SPXHANDLE_INVALID;
 use std::ffi;
 use std::ffi::CString;
+use SmartHandle;
 
 pub mod audio;
 pub mod recognizer;
 
 #[derive(Debug)]
 pub struct SpeechConfig {
-    handle: SPXSPEECHCONFIGHANDLE,
+    handle: SmartHandle<SPXSPEECHCONFIGHANDLE>,
 }
 
 impl SpeechConfig {
@@ -18,20 +19,18 @@ impl SpeechConfig {
         where S1: Into<Vec<u8>>, S2: Into<Vec<u8>> {
         let c_sub = CString::new(subscription)?;
         let c_region = CString::new(region)?;
-        let mut result = SpeechConfig {
-            handle: SPXHANDLE_INVALID,
-        };
+        let mut handle = SPXHANDLE_INVALID;
         unsafe {
-            convert_err(speech_config_from_subscription(&mut result.handle, c_sub.as_ptr(), c_region.as_ptr()))?;
+            convert_err(speech_config_from_subscription(&mut handle, c_sub.as_ptr(), c_region.as_ptr()))?;
         }
+        let mut result = SpeechConfig {
+            handle: SmartHandle::create(handle, speech_config_release),
+        };
+
         Ok(result)
     }
-}
 
-impl Drop for SpeechConfig {
-    fn drop(&mut self) {
-        unsafe {
-            speech_config_release(self.handle);
-        }
+    pub fn get_handle(&self) -> SPXSPEECHCONFIGHANDLE {
+        self.handle.get()
     }
 }

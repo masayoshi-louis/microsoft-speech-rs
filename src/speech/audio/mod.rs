@@ -32,4 +32,8 @@ impl<S: AsRef<dyn AudioInputStream>> AudioConfig<S> {
         };
         Ok(result)
     }
+
+    pub fn get_handle(&self) -> SPXAUDIOCONFIGHANDLE {
+        self.handle.get()
+    }
 }
