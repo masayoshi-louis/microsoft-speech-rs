@@ -4,17 +4,18 @@ pub use self::stream_format::AudioStreamFormat;
 use speech_api::*;
 use SpxError;
 use std::ffi;
+use std::sync::Arc;
 
 mod stream;
 mod stream_format;
 
-pub struct AudioConfig<S> {
+pub struct AudioConfig {
     handle: SPXAUDIOCONFIGHANDLE,
-    stream: S,
+    stream: Arc<dyn AudioInputStream>,
 }
 
-impl<S> AudioConfig<S> where S: AudioInputStream {
-    pub fn from_stream_input(stream: S) -> Result<AudioConfig<S>, SpxError> {
+impl AudioConfig {
+    pub fn from_stream_input(stream: Arc<dyn AudioInputStream>) -> Result<AudioConfig, SpxError> {
         let mut result = AudioConfig {
             handle: 0 as SPXAUDIOCONFIGHANDLE,
             stream,
@@ -26,7 +27,7 @@ impl<S> AudioConfig<S> where S: AudioInputStream {
     }
 }
 
-impl<S> Drop for AudioConfig<S> {
+impl Drop for AudioConfig {
     fn drop(&mut self) {
         unsafe {
             audio_config_release(self.handle);
