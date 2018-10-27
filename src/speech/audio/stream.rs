@@ -24,7 +24,7 @@ impl AudioInputStream {
 }
 
 #[derive(Debug)]
-pub struct BaseAudioInputStream {
+struct BaseAudioInputStream {
     handle: SPXAUDIOSTREAMHANDLE,
     format: AudioStreamFormat,
 }
@@ -38,7 +38,7 @@ impl Drop for BaseAudioInputStream {
 }
 
 #[derive(Debug)]
-pub struct PushAudioInputStream {
+struct PushAudioInputStream {
     base: BaseAudioInputStream,
 }
 
