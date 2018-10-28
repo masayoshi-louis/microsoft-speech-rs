@@ -122,8 +122,16 @@ impl EventFactory for BaseRecognitionResultEvent {
     fn create(handle: SPXEVENTHANDLE) -> Result<BaseRecognitionResultEvent, SpxError> {
         Ok(BaseRecognitionResultEvent {
             base: RecognitionEvent::create(handle)?,
-            result_handle: get_result_handle(handle)?,
+            result_handle: Self::get_result_handle(handle)?,
         })
+    }
+}
+
+impl BaseRecognitionResultEvent {
+    #[inline(always)]
+    fn get_result_handle(event_handle: SPXEVENTHANDLE) -> Result<Arc<SmartHandle<SPXRESULTHANDLE>>, SpxError> {
+        let handle = ::spx_populate(event_handle, recognizer_recognition_event_get_result)?;
+        Ok(Arc::new(SmartHandle::create(handle, recognizer_result_handle_release)))
     }
 }
 
@@ -189,10 +197,4 @@ impl RecognitionCanceledEvent {
         let code = ::spx_populate(self.result_handle.get(), result_get_reason_canceled)?;
         return Ok(CancellationReason::from_u32(code).expect("unknown reason"));
     }
-}
-
-#[inline]
-fn get_result_handle(event_handle: SPXEVENTHANDLE) -> Result<Arc<SmartHandle<SPXRESULTHANDLE>>, SpxError> {
-    let handle = ::spx_populate(event_handle, recognizer_recognition_event_get_result)?;
-    Ok(Arc::new(SmartHandle::create(handle, recognizer_result_handle_release)))
 }
