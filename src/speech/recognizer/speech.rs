@@ -18,7 +18,9 @@ type C = RecognitionCanceledEvent;
 
 pub struct SpeechRecognizer<S> {
     base: AbstractAsyncRecognizer<E, C>,
+    #[allow(unused)]
     config: SpeechConfig,
+    #[allow(unused)]
     audio: AudioConfig<S>,
 }
 

@@ -1,11 +1,9 @@
 use CancellationReason;
-use convert_err;
 use num::FromPrimitive;
 use SmartHandle;
 use speech::recognizer::RecognitionResult;
 use speech_api::*;
 use SpxError;
-use SPXHANDLE_INVALID;
 use std::ops::Deref;
 use std::sync::Arc;
 

@@ -12,6 +12,7 @@ mod stream_format;
 
 pub struct AudioConfig<S> {
     handle: SmartHandle<SPXAUDIOCONFIGHANDLE>,
+    #[allow(unused)]
     stream: S,
 }
 

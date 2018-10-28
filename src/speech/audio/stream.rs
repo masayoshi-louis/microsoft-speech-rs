@@ -57,6 +57,7 @@ impl PushAudioInputStream {
 }
 
 impl Drop for PushAudioInputStream {
+    #[allow(unused_must_use)]
     fn drop(&mut self) {
         unsafe {
             if audio_stream_is_handle_valid(self.handle.get()) {

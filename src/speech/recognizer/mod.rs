@@ -1,6 +1,4 @@
 use convert_err;
-use futures::future::Future;
-use futures::sink::Sink;
 use futures::sync::mpsc::{channel, Receiver, Sender};
 use num::FromPrimitive;
 use ResultReason;
@@ -12,7 +10,6 @@ use speech::recognizer::events::SessionEvent;
 use speech_api::*;
 use SpxError;
 use std::ffi::c_void;
-use std::ffi::CString;
 use std::ops::Deref;
 use std::os::raw::c_char;
 use std::sync::Arc;

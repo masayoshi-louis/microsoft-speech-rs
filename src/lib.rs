@@ -122,6 +122,7 @@ pub struct SmartHandle<T: Copy> {
 }
 
 impl<T: Copy> SmartHandle<T> {
+    #[inline(always)]
     fn create(handle: T, release_fn: unsafe extern "C" fn(T) -> SPXHR) -> SmartHandle<T> {
         SmartHandle { internal: handle, release_fn }
     }
