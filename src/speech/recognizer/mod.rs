@@ -252,7 +252,7 @@ impl RecognitionResult {
     }
 
     pub fn duration(&self) -> Result<Duration, SpxError> {
-        self.populate(result_get_offset).map(Duration::from_millis)
+        self.populate(result_get_duration).map(Duration::from_micros)
     }
 
     #[inline(always)]
