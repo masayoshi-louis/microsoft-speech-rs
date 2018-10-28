@@ -12,7 +12,6 @@ pub use property::PropertyBag;
 pub use property::PropertyId;
 use speech_api::*;
 use std::ffi;
-use std::ffi::CStr;
 use std::os::raw::c_char;
 
 mod speech_api;
@@ -172,7 +171,7 @@ impl FfiObject {
         FfiObject::_from_vec(Vec::with_capacity(size), size)
     }
 
-    pub fn to_vec(self, length: usize) -> Vec<u8> {
+    pub fn into_vec(self, length: usize) -> Vec<u8> {
         unsafe {
             let v = Vec::from_raw_parts(self.ptr, length, self.size);
             std::mem::forget(self);
@@ -203,7 +202,7 @@ fn spx_populate_string(handle: SPXHANDLE, max_chars: usize,
         convert_err(f(handle, ptr, buff.size as u32))?;
         for i in 0..buff.size {
             if *ptr.offset(i as isize) == 0 {
-                let vec = buff.to_vec(i);
+                let vec = buff.into_vec(i);
                 return Ok(String::from_utf8(vec)?);
             }
         }
