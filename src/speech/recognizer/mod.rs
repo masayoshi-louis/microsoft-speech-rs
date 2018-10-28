@@ -240,11 +240,11 @@ impl RecognitionResult {
     }
 
     pub fn offset(&self) -> Result<u64, SpxError> {
-        self.populate_u64(result_get_offset)
+        self.populate::<u64>(result_get_offset)
     }
 
     pub fn duration(&self) -> Result<Duration, SpxError> {
-        self.populate_u64(result_get_offset).map(Duration::from_millis)
+        self.populate::<u64>(result_get_offset).map(Duration::from_millis)
     }
 
     #[inline(always)]
@@ -259,10 +259,10 @@ impl RecognitionResult {
     }
 
     #[inline(always)]
-    fn populate_u64(&self,
-                    f: unsafe extern "C" fn(SPXRESULTHANDLE, *mut u64) -> SPXHR) -> Result<u64, SpxError> {
+    fn populate<T>(&self,
+                   f: unsafe extern "C" fn(SPXRESULTHANDLE, *mut T) -> SPXHR) -> Result<T, SpxError> {
         unsafe {
-            let mut result: u64 = std::mem::uninitialized();
+            let mut result: T = std::mem::uninitialized();
             convert_err(f(self.get_handle(), &mut result))?;
             return Ok(result);
         }
