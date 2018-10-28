@@ -11,8 +11,10 @@ use std::sync::Arc;
 
 const SESSION_ID_SIZE: usize = 36; // UUID
 
-pub(crate) trait EventFactory<T> {
-    fn create(handle: SPXEVENTHANDLE) -> Result<T, SpxError>;
+pub trait EventFactory {
+    type R;
+
+    fn create(handle: SPXEVENTHANDLE) -> Result<Self::R, SpxError>;
 }
 
 // Event
@@ -21,7 +23,9 @@ pub struct Event {
     handle: SmartHandle<SPXEVENTHANDLE>,
 }
 
-impl EventFactory<Event> for Event {
+impl EventFactory for Event {
+    type R = Event;
+
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<Event, SpxError> {
         Ok(Event {
@@ -50,7 +54,9 @@ impl Deref for SessionEvent {
     }
 }
 
-impl EventFactory<SessionEvent> for SessionEvent {
+impl EventFactory for SessionEvent {
+    type R = SessionEvent;
+
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<SessionEvent, SpxError> {
         Ok(SessionEvent {
@@ -69,11 +75,10 @@ impl SessionEvent {
     }
 }
 
-// RecognitionEvent
+// RecognitionEvent TODO impl offset
 
 pub struct RecognitionEvent {
     base: SessionEvent,
-    result_handle: Arc<SmartHandle<SPXRESULTHANDLE>>,
 }
 
 impl Deref for RecognitionEvent {
@@ -84,11 +89,39 @@ impl Deref for RecognitionEvent {
     }
 }
 
-impl EventFactory<RecognitionEvent> for RecognitionEvent {
+impl EventFactory for RecognitionEvent {
+    type R = RecognitionEvent;
+
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<RecognitionEvent, SpxError> {
         Ok(RecognitionEvent {
             base: SessionEvent::create(handle)?,
+        })
+    }
+}
+
+// BaseRecognitionResultEvent
+
+pub struct BaseRecognitionResultEvent {
+    base: RecognitionEvent,
+    result_handle: Arc<SmartHandle<SPXRESULTHANDLE>>,
+}
+
+impl Deref for BaseRecognitionResultEvent {
+    type Target = RecognitionEvent;
+
+    fn deref(&self) -> &Self::Target {
+        &self.base
+    }
+}
+
+impl EventFactory for BaseRecognitionResultEvent {
+    type R = BaseRecognitionResultEvent;
+
+    #[inline]
+    fn create(handle: SPXEVENTHANDLE) -> Result<BaseRecognitionResultEvent, SpxError> {
+        Ok(BaseRecognitionResultEvent {
+            base: RecognitionEvent::create(handle)?,
             result_handle: get_result_handle(handle)?,
         })
     }
@@ -97,22 +130,24 @@ impl EventFactory<RecognitionEvent> for RecognitionEvent {
 // RecognitionResultEvent
 
 pub struct RecognitionResultEvent {
-    base: RecognitionEvent,
+    base: BaseRecognitionResultEvent,
 }
 
 impl Deref for RecognitionResultEvent {
-    type Target = RecognitionEvent;
+    type Target = BaseRecognitionResultEvent;
 
     fn deref(&self) -> &Self::Target {
         &self.base
     }
 }
 
-impl EventFactory<RecognitionResultEvent> for RecognitionResultEvent {
+impl EventFactory for RecognitionResultEvent {
+    type R = RecognitionResultEvent;
+
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<RecognitionResultEvent, SpxError> {
         Ok(RecognitionResultEvent {
-            base: RecognitionEvent::create(handle)?,
+            base: BaseRecognitionResultEvent::create(handle)?,
         })
     }
 }
@@ -126,23 +161,25 @@ impl RecognitionResultEvent {
 // RecognitionCanceledEvent
 
 pub struct RecognitionCanceledEvent {
-    base: RecognitionEvent,
+    base: BaseRecognitionResultEvent,
 }
 
 
 impl Deref for RecognitionCanceledEvent {
-    type Target = RecognitionEvent;
+    type Target = BaseRecognitionResultEvent;
 
     fn deref(&self) -> &Self::Target {
         &self.base
     }
 }
 
-impl EventFactory<RecognitionCanceledEvent> for RecognitionCanceledEvent {
+impl EventFactory for RecognitionCanceledEvent {
+    type R = RecognitionCanceledEvent;
+
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<RecognitionCanceledEvent, SpxError> {
         Ok(RecognitionCanceledEvent {
-            base: RecognitionEvent::create(handle)?,
+            base: BaseRecognitionResultEvent::create(handle)?,
         })
     }
 }

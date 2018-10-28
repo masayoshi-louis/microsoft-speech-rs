@@ -3,6 +3,8 @@ use speech::audio::AudioConfig;
 use speech::audio::AudioInputStream;
 use speech::recognizer::AbstractAsyncRecognizer;
 use speech::recognizer::AsyncRecognizer;
+use speech::recognizer::events::RecognitionCanceledEvent;
+use speech::recognizer::events::RecognitionResultEvent;
 use speech::recognizer::Recognizer;
 use speech::SpeechConfig;
 use speech_api::*;
@@ -11,8 +13,11 @@ use SPXHANDLE_INVALID;
 use std::ops::Deref;
 use std::ops::DerefMut;
 
+type E = RecognitionResultEvent;
+type C = RecognitionCanceledEvent;
+
 pub struct SpeechRecognizer<S> {
-    base: AbstractAsyncRecognizer,
+    base: AbstractAsyncRecognizer<E, C>,
     config: SpeechConfig,
     audio: AudioConfig<S>,
 }
@@ -32,7 +37,7 @@ impl<S: AsRef<dyn AudioInputStream>> SpeechRecognizer<S> {
 }
 
 impl<S> Deref for SpeechRecognizer<S> {
-    type Target = dyn AsyncRecognizer<Target=dyn Recognizer>;
+    type Target = dyn AsyncRecognizer<E, C, Target=dyn Recognizer>;
 
     fn deref(&self) -> &Self::Target {
         &self.base
