@@ -33,6 +33,7 @@ impl EventFactory for Event {
 }
 
 impl Event {
+    #[inline]
     pub fn get_handle(&self) -> SPXEVENTHANDLE {
         self.handle.get()
     }
@@ -73,7 +74,7 @@ impl SessionEvent {
     }
 }
 
-// RecognitionEvent TODO impl offset
+// RecognitionEvent
 
 pub struct RecognitionEvent {
     base: SessionEvent,
@@ -95,6 +96,12 @@ impl EventFactory for RecognitionEvent {
         Ok(RecognitionEvent {
             base: SessionEvent::create(handle)?,
         })
+    }
+}
+
+impl RecognitionEvent {
+    pub fn offset(&self) -> Result<u64, SpxError> {
+        ::spx_populate(self.get_handle(), recognizer_recognition_event_get_offset)
     }
 }
 

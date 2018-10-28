@@ -105,6 +105,7 @@ impl Recognizer for BaseRecognizer {
         }
     }
 
+    #[inline]
     fn get_handle(&self) -> SPXRECOHANDLE {
         self.handle.get()
     }

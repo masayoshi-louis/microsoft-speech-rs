@@ -37,6 +37,7 @@ impl AudioStreamFormat {
         Ok(result)
     }
 
+    #[inline]
     pub fn get_handle(&self) -> SPXAUDIOSTREAMFORMATHANDLE {
         self.handle.get()
     }

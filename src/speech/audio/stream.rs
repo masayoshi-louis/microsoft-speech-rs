@@ -68,6 +68,7 @@ impl Drop for PushAudioInputStream {
 }
 
 impl AudioInputStream for PushAudioInputStream {
+    #[inline]
     fn get_handle(&self) -> SPXAUDIOSTREAMHANDLE {
         self.base.handle.get()
     }

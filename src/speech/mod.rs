@@ -28,6 +28,7 @@ impl SpeechConfig {
         Ok(result)
     }
 
+    #[inline]
     pub fn get_handle(&self) -> SPXSPEECHCONFIGHANDLE {
         self.handle.get()
     }
