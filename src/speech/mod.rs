@@ -1,9 +1,12 @@
 use convert_err;
+use PropertyBag;
 use SmartHandle;
 use speech_api::*;
 use SpxError;
 use SPXHANDLE_INVALID;
 use std::ffi::CString;
+use std::ops::Deref;
+use std::ops::DerefMut;
 
 pub mod audio;
 pub mod recognizer;
@@ -11,6 +14,7 @@ pub mod recognizer;
 #[derive(Debug)]
 pub struct SpeechConfig {
     handle: SmartHandle<SPXSPEECHCONFIGHANDLE>,
+    props: PropertyBag,
 }
 
 impl SpeechConfig {
@@ -24,6 +28,7 @@ impl SpeechConfig {
         }
         let result = SpeechConfig {
             handle: SmartHandle::create(handle, speech_config_release),
+            props: PropertyBag::create(handle, speech_config_get_property_bag)?,
         };
         Ok(result)
     }
@@ -31,5 +36,19 @@ impl SpeechConfig {
     #[inline]
     pub fn get_handle(&self) -> SPXSPEECHCONFIGHANDLE {
         self.handle.get()
+    }
+}
+
+impl Deref for SpeechConfig {
+    type Target = PropertyBag;
+
+    fn deref(&self) -> &Self::Target {
+        &self.props
+    }
+}
+
+impl DerefMut for SpeechConfig {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.props
     }
 }

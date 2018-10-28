@@ -164,3 +164,19 @@ fn spx_populate<T>(handle: SPXHANDLE,
         return Ok(result);
     }
 }
+
+#[derive(Debug)]
+pub struct PropertyBag {
+    handle: SmartHandle<SPXPROPERTYBAGHANDLE>,
+}
+
+impl PropertyBag {
+    #[inline(always)]
+    fn create(hcfg: SPXHANDLE,
+              f: unsafe extern "C" fn(SPXHANDLE, *mut SPXPROPERTYBAGHANDLE) -> SPXHR) -> Result<PropertyBag, SpxError> {
+        let handle = spx_populate(hcfg, f)?;
+        Ok(PropertyBag {
+            handle: SmartHandle::create(handle, property_bag_release),
+        })
+    }
+}
