@@ -189,7 +189,7 @@ impl<E, C> AbstractAsyncRecognizer<E, C> {
     #[inline]
     fn set_callback<T>(&self,
                        sender: &Option<Box<Sender<T>>>,
-                       f: unsafe extern "C" fn(SPXRECOHANDLE, PRECOGNITION_CALLBACK_FUNC, *const ::std::os::raw::c_void) -> SPXHR)
+                       f: unsafe extern "C" fn(SPXRECOHANDLE, PRECOGNITION_CALLBACK_FUNC, *const c_void) -> SPXHR)
         where T: EventFactory<R=T> {
         if let Some(s) = sender {
             let s = s.as_ref();
