@@ -29,6 +29,10 @@ pub enum SpxError {
     StrNulError(#[cause] ffi::NulError),
     #[fail(display = "Failed to convert C string.")]
     IntoStringError(#[cause] ffi::IntoStringError),
+    #[fail(display = "Failed to convert C string.")]
+    InvalidCString,
+    #[fail(display = "C string is not utf-8 encoded.")]
+    FromUtf8Error(#[cause] std::string::FromUtf8Error),
 }
 
 impl From<ffi::NulError> for SpxError {
@@ -40,6 +44,12 @@ impl From<ffi::NulError> for SpxError {
 impl From<ffi::IntoStringError> for SpxError {
     fn from(err: ffi::IntoStringError) -> Self {
         return SpxError::IntoStringError(err);
+    }
+}
+
+impl From<std::string::FromUtf8Error> for SpxError {
+    fn from(err: std::string::FromUtf8Error) -> Self {
+        return SpxError::FromUtf8Error(err);
     }
 }
 
@@ -162,6 +172,14 @@ impl FfiObject {
         FfiObject::_from_vec(Vec::with_capacity(size), size)
     }
 
+    pub fn to_vec(self, length: usize) -> Vec<u8> {
+        unsafe {
+            let v = Vec::from_raw_parts(self.ptr, length, self.size);
+            std::mem::forget(self);
+            return v;
+        }
+    }
+
     fn _from_vec(mut v: Vec<u8>, size: usize) -> FfiObject {
         assert!(size > 0);
         let ptr = v.as_mut_ptr();
@@ -183,9 +201,14 @@ fn spx_populate_string(handle: SPXHANDLE, max_chars: usize,
     let ptr = buff.ptr as *mut c_char;
     unsafe {
         convert_err(f(handle, ptr, buff.size as u32))?;
-        let c_str = CStr::from_ptr(ptr);
-        return Ok(c_str.to_string_lossy().into_owned());
+        for i in 0..buff.size {
+            if *ptr.offset(i as isize) == 0 {
+                let vec = buff.to_vec(i);
+                return Ok(String::from_utf8(vec)?);
+            }
+        }
     }
+    Err(SpxError::InvalidCString)
 }
 
 #[inline(always)]
