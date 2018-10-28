@@ -20,7 +20,9 @@ pub mod events;
 mod speech;
 
 const DEFAULT_CH_BUFF_SIZE: usize = 5;
-const MAX_RESULT_ID_CHAR_COUNT: usize = 128;
+
+const RESULT_ID_SIZE: usize = 32; // UUID
+
 const MAX_TEXT_CHAR_COUNT: usize = 1024;
 
 pub trait Recognizer: Send {
@@ -235,7 +237,7 @@ impl RecognitionResult {
     }
 
     pub fn id(&self) -> Result<String, SpxError> {
-        self.populate_string(MAX_RESULT_ID_CHAR_COUNT, result_get_result_id)
+        self.populate_string(RESULT_ID_SIZE, result_get_result_id)
     }
 
     pub fn text(&self) -> Result<String, SpxError> {

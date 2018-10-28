@@ -182,7 +182,7 @@ fn spx_populate_string(handle: SPXHANDLE, max_chars: usize,
     let buff = FfiObject::new_uninitialized(max_chars + 1);
     let ptr = buff.ptr as *mut c_char;
     unsafe {
-        convert_err(f(handle, ptr, max_chars as u32))?;
+        convert_err(f(handle, ptr, buff.size as u32))?;
         let c_str = CStr::from_ptr(ptr);
         return Ok(c_str.to_string_lossy().into_owned());
     }

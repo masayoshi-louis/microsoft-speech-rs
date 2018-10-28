@@ -7,7 +7,7 @@ use SpxError;
 use std::ops::Deref;
 use std::sync::Arc;
 
-const SESSION_ID_SIZE: usize = 36; // UUID
+const SESSION_ID_SIZE: usize = 32; // UUID
 
 pub trait EventFactory {
     type R;
