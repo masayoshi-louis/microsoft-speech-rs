@@ -2,7 +2,6 @@ use convert_err;
 use speech_api::*;
 use SpxError;
 use SPXHANDLE_INVALID;
-use std::ffi;
 use SmartHandle;
 
 #[derive(Debug)]

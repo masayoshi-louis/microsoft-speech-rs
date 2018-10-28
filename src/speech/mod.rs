@@ -1,10 +1,9 @@
 use convert_err;
+use SmartHandle;
 use speech_api::*;
 use SpxError;
 use SPXHANDLE_INVALID;
-use std::ffi;
 use std::ffi::CString;
-use SmartHandle;
 
 pub mod audio;
 pub mod recognizer;
@@ -23,10 +22,9 @@ impl SpeechConfig {
         unsafe {
             convert_err(speech_config_from_subscription(&mut handle, c_sub.as_ptr(), c_region.as_ptr()))?;
         }
-        let mut result = SpeechConfig {
+        let result = SpeechConfig {
             handle: SmartHandle::create(handle, speech_config_release),
         };
-
         Ok(result)
     }
 

@@ -6,8 +6,6 @@ use SmartHandle;
 use speech_api::*;
 use SpxError;
 use SPXHANDLE_INVALID;
-use std::ffi;
-use std::sync::Arc;
 
 mod stream;
 mod stream_format;
