@@ -251,10 +251,11 @@ impl RecognitionResult {
     fn populate_string(&self,
                        f: unsafe extern "C" fn(SPXRESULTHANDLE, *mut c_char, u32) -> SPXHR) -> Result<String, SpxError> {
         unsafe {
-            let mut buff: [c_char; MAX_CHAR_COUNT + 1] = std::mem::uninitialized();
-            convert_err(f(self.get_handle(), &mut buff[0], MAX_CHAR_COUNT as u32))?;
-            let c_str = CString::from_raw(&mut buff[0]);
-            return Ok(c_str.into_string()?);
+            let buff = CString::from_vec_unchecked(Vec::with_capacity(MAX_CHAR_COUNT + 1));
+            let buff = buff.into_raw();
+            convert_err(f(self.get_handle(), buff, MAX_CHAR_COUNT as u32))?;
+            let buff = CString::from_raw(buff);
+            return Ok(buff.into_string()?);
         }
     }
 
