@@ -196,11 +196,9 @@ impl<E, C> AbstractAsyncRecognizer<E, C> {
             let cb: PRECOGNITION_CALLBACK_FUNC = Some(|_, h_evt, p_sender| {
                 let sender = unsafe { &mut *(p_sender as *mut Sender<T>) };
                 match sender.try_send(T::create(h_evt).expect("failed to create event")) {
-                    Ok(()) => {
-                        println!("send ok"); // TODO remove
-                    }
+                    Ok(()) => {}
                     Err(e) => {
-                        println!("{:?}", e);
+                        error!("can not publish event, err: {}", e);
                     }
                 }
             });

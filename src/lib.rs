@@ -4,6 +4,8 @@ extern crate failure;
 #[macro_use]
 extern crate failure_derive;
 extern crate futures;
+#[macro_use]
+extern crate log;
 extern crate num;
 
 use speech_api::*;
