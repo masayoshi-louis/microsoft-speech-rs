@@ -8,13 +8,16 @@ extern crate futures;
 extern crate log;
 extern crate num;
 
+pub use property::PropertyBag;
+pub use property::PropertyId;
 use speech_api::*;
 use std::ffi;
-use std::ffi::CString;
+use std::ffi::CStr;
 use std::os::raw::c_char;
 
 mod speech_api;
 pub mod speech;
+mod property;
 
 const SPXHANDLE_INVALID: SPXHANDLE = 0 as SPXHANDLE;
 
@@ -143,15 +146,45 @@ impl<T: Copy> Drop for SmartHandle<T> {
 
 unsafe impl<T: Copy> Send for SmartHandle<T> {}
 
+pub struct FfiObject {
+    pub ptr: *mut u8,
+    pub size: usize,
+}
+
+impl FfiObject {
+    // allocate and zero memory
+    pub fn new(size: usize) -> FfiObject {
+        FfiObject::_from_vec(vec![0u8; size], size)
+    }
+
+    // allocate memory without zeroing
+    pub fn new_uninitialized(size: usize) -> FfiObject {
+        FfiObject::_from_vec(Vec::with_capacity(size), size)
+    }
+
+    fn _from_vec(mut v: Vec<u8>, size: usize) -> FfiObject {
+        assert!(size > 0);
+        let ptr = v.as_mut_ptr();
+        std::mem::forget(v);
+        FfiObject { ptr, size }
+    }
+}
+
+impl Drop for FfiObject {
+    fn drop(&mut self) {
+        unsafe { std::mem::drop(Vec::from_raw_parts(self.ptr, 0, self.size)) };
+    }
+}
+
 #[inline(always)]
 fn spx_populate_string(handle: SPXHANDLE, max_chars: usize,
                        f: unsafe extern "C" fn(SPXHANDLE, *mut c_char, u32) -> SPXHR) -> Result<String, SpxError> {
+    let buff = FfiObject::new_uninitialized(max_chars + 1);
+    let ptr = buff.ptr as *mut c_char;
     unsafe {
-        let buff = CString::from_vec_unchecked(Vec::with_capacity(max_chars + 1));
-        let buff = buff.into_raw();
-        convert_err(f(handle, buff, max_chars as u32))?;
-        let buff = CString::from_raw(buff);
-        return Ok(buff.into_string()?);
+        convert_err(f(handle, ptr, max_chars as u32))?;
+        let c_str = CStr::from_ptr(ptr);
+        return Ok(c_str.to_string_lossy().into_owned());
     }
 }
 
@@ -162,21 +195,5 @@ fn spx_populate<T>(handle: SPXHANDLE,
         let mut result: T = std::mem::uninitialized();
         convert_err(f(handle, &mut result))?;
         return Ok(result);
-    }
-}
-
-#[derive(Debug)]
-pub struct PropertyBag {
-    handle: SmartHandle<SPXPROPERTYBAGHANDLE>,
-}
-
-impl PropertyBag {
-    #[inline(always)]
-    fn create(hcfg: SPXHANDLE,
-              f: unsafe extern "C" fn(SPXHANDLE, *mut SPXPROPERTYBAGHANDLE) -> SPXHR) -> Result<PropertyBag, SpxError> {
-        let handle = spx_populate(hcfg, f)?;
-        Ok(PropertyBag {
-            handle: SmartHandle::create(handle, property_bag_release),
-        })
     }
 }
