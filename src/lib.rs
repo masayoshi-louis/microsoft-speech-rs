@@ -8,6 +8,8 @@ extern crate num;
 
 use speech_api::*;
 use std::ffi;
+use std::ffi::CString;
+use std::os::raw::c_char;
 
 mod speech_api;
 pub mod speech;
@@ -94,6 +96,15 @@ pub enum ResultReason {
 }
 }
 
+enum_from_primitive! {
+#[derive(Debug, PartialEq)]
+pub enum CancellationReason
+{
+    CancellationReason_Error = 1,
+    CancellationReason_EndOfStream = 2,
+}
+}
+
 #[inline(always)]
 fn convert_err(hr: usize) -> Result<(), SpxError> {
     if hr != SPX_NOERROR {
@@ -128,3 +139,25 @@ impl<T: Copy> Drop for SmartHandle<T> {
 }
 
 unsafe impl<T: Copy> Send for SmartHandle<T> {}
+
+#[inline(always)]
+fn spx_populate_string(handle: SPXHANDLE, max_chars: usize,
+                       f: unsafe extern "C" fn(SPXHANDLE, *mut c_char, u32) -> SPXHR) -> Result<String, SpxError> {
+    unsafe {
+        let buff = CString::from_vec_unchecked(Vec::with_capacity(max_chars + 1));
+        let buff = buff.into_raw();
+        convert_err(f(handle, buff, max_chars as u32))?;
+        let buff = CString::from_raw(buff);
+        return Ok(buff.into_string()?);
+    }
+}
+
+#[inline(always)]
+fn spx_populate<T>(handle: SPXHANDLE,
+                   f: unsafe extern "C" fn(SPXHANDLE, *mut T) -> SPXHR) -> Result<T, SpxError> {
+    unsafe {
+        let mut result: T = std::mem::uninitialized();
+        convert_err(f(handle, &mut result))?;
+        return Ok(result);
+    }
+}

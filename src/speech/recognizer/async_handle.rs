@@ -24,9 +24,10 @@ impl Deref for AsyncHandle {
 }
 
 impl AsyncHandle {
-    pub fn create(hreco: SPXRECOHANDLE,
-                  init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
-                  wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32) -> SPXHR) -> Result<AsyncHandle, SpxError> {
+    pub(crate)
+    fn create(hreco: SPXRECOHANDLE,
+              init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
+              wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32) -> SPXHR) -> Result<AsyncHandle, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
         unsafe {
             convert_err(init_fn(hreco, &mut handle))?;

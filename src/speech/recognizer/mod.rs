@@ -13,13 +13,16 @@ use std::ffi::c_void;
 use std::ffi::CString;
 use std::ops::Deref;
 use std::os::raw::c_char;
+use std::sync::Arc;
 use std::time::Duration;
 
 mod async_handle;
+pub mod events;
 mod speech;
 
 const DEFAULT_CH_BUFF_SIZE: usize = 5;
-const MAX_CHAR_COUNT: usize = 1024;
+const MAX_RESULT_ID_CHAR_COUNT: usize = 128;
+const MAX_TEXT_CHAR_COUNT: usize = 1024;
 
 pub trait Recognizer: Send {
     fn is_enabled(&self) -> Result<bool, SpxError>;
@@ -208,13 +211,13 @@ impl AbstractAsyncRecognizer {
 }
 
 pub struct RecognitionResult {
-    handle: SmartHandle<SPXRESULTHANDLE>,
+    handle: Arc<SmartHandle<SPXRESULTHANDLE>>,
 }
 
 impl RecognitionResult {
-    fn create(handle: SPXRESULTHANDLE) -> Result<RecognitionResult, SpxError> {
+    fn create(handle: Arc<SmartHandle<SPXRESULTHANDLE>>) -> Result<RecognitionResult, SpxError> {
         Ok(RecognitionResult {
-            handle: SmartHandle::create(handle, recognizer_result_handle_release),
+            handle,
         })
     }
 
@@ -224,48 +227,35 @@ impl RecognitionResult {
     }
 
     pub fn id(&self) -> Result<String, SpxError> {
-        self.populate_string(result_get_result_id)
+        self.populate_string(MAX_RESULT_ID_CHAR_COUNT, result_get_result_id)
     }
 
     pub fn text(&self) -> Result<String, SpxError> {
-        self.populate_string(result_get_text)
+        self.populate_string(MAX_TEXT_CHAR_COUNT, result_get_text)
     }
 
     pub fn reason(&self) -> Result<ResultReason, SpxError> {
-        let mut code = 0u32;
-        unsafe {
-            convert_err(result_get_reason(self.get_handle(), &mut code))?;
-        }
+        let code = ::spx_populate(self.get_handle(), result_get_reason)?;
         return Ok(ResultReason::from_u32(code).expect("unknown reason"));
     }
 
     pub fn offset(&self) -> Result<u64, SpxError> {
-        self.populate::<u64>(result_get_offset)
+        self.populate(result_get_offset)
     }
 
     pub fn duration(&self) -> Result<Duration, SpxError> {
-        self.populate::<u64>(result_get_offset).map(Duration::from_millis)
+        self.populate(result_get_offset).map(Duration::from_millis)
     }
 
     #[inline(always)]
-    fn populate_string(&self,
+    fn populate_string(&self, max_chars: usize,
                        f: unsafe extern "C" fn(SPXRESULTHANDLE, *mut c_char, u32) -> SPXHR) -> Result<String, SpxError> {
-        unsafe {
-            let buff = CString::from_vec_unchecked(Vec::with_capacity(MAX_CHAR_COUNT + 1));
-            let buff = buff.into_raw();
-            convert_err(f(self.get_handle(), buff, MAX_CHAR_COUNT as u32))?;
-            let buff = CString::from_raw(buff);
-            return Ok(buff.into_string()?);
-        }
+        ::spx_populate_string(self.get_handle(), max_chars, f)
     }
 
     #[inline(always)]
     fn populate<T>(&self,
                    f: unsafe extern "C" fn(SPXRESULTHANDLE, *mut T) -> SPXHR) -> Result<T, SpxError> {
-        unsafe {
-            let mut result: T = std::mem::uninitialized();
-            convert_err(f(self.get_handle(), &mut result))?;
-            return Ok(result);
-        }
+        ::spx_populate(self.get_handle(), f)
     }
 }
