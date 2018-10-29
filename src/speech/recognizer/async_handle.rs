@@ -9,6 +9,8 @@ use std::time::Duration;
 use std::time::Instant;
 use tokio::timer::Interval;
 
+const PULL_INTERVAL_MS: u64 = 30;
+
 pub struct AsyncHandle {
     handle: SmartHandle<SPXASYNCHANDLE>,
     wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32) -> SPXHR,
@@ -37,7 +39,7 @@ impl AsyncHandle {
         Ok(AsyncHandle {
             handle: SmartHandle::create(handle, recognizer_async_handle_release),
             wait_fn,
-            timer: Interval::new(Instant::now(), Duration::from_millis(10)),
+            timer: Interval::new(Instant::now(), Duration::from_millis(PULL_INTERVAL_MS)),
         })
     }
 }
@@ -48,7 +50,7 @@ impl Future for AsyncHandle {
 
     fn poll(&mut self) -> Result<Async<Self::Item>, Self::Error> {
         let hr = unsafe {
-            (self.wait_fn)(self.handle.get(), 1)
+            (self.wait_fn)(self.handle.get(), 0)
         };
         if hr == SPXERR_TIMEOUT {
             match self.timer.poll().expect("timer failure") {
