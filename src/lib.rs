@@ -24,7 +24,7 @@ const SPXHANDLE_INVALID: SPXHANDLE = 0 as SPXHANDLE;
 #[derive(Fail, Debug)]
 pub enum SpxError {
     #[fail(display = "Speech API error code: {}.", _0)]
-    General(usize),
+    ApiError(usize),
     #[fail(display = "Invalid CString (NulError).")]
     StrNulError(#[cause] ffi::NulError),
     #[fail(display = "Failed to convert C string.")]
@@ -123,7 +123,7 @@ pub enum CancellationReason
 #[inline(always)]
 fn convert_err(hr: usize) -> Result<(), SpxError> {
     if hr != SPX_NOERROR {
-        return Err(SpxError::General(hr));
+        return Err(SpxError::ApiError(hr));
     }
     return Ok(());
 }
