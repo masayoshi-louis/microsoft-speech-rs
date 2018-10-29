@@ -1,14 +1,13 @@
 use convert_err;
 use futures::prelude::*;
-use futures::task;
 use SmartHandle;
 use speech_api::*;
 use SpxError;
+use SPXHANDLE_INVALID;
 use std::ops::Deref;
 use std::time::Duration;
-use tokio::timer::Interval;
-use SPXHANDLE_INVALID;
 use std::time::Instant;
+use tokio::timer::Interval;
 
 pub struct AsyncHandle {
     handle: SmartHandle<SPXASYNCHANDLE>,
