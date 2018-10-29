@@ -7,6 +7,7 @@ extern crate futures;
 #[macro_use]
 extern crate log;
 extern crate num;
+extern crate tokio;
 
 pub use property::PropertyBag;
 pub use property::PropertyId;
@@ -154,6 +155,8 @@ impl<T: Copy> Drop for SmartHandle<T> {
 }
 
 unsafe impl<T: Copy> Send for SmartHandle<T> {}
+
+unsafe impl<T: Copy> Sync for SmartHandle<T> {}
 
 pub struct FfiObject {
     pub ptr: *mut u8,
