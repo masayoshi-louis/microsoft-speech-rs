@@ -51,9 +51,7 @@ impl Future for AsyncHandle {
         let hr = unsafe {
             (self.wait_fn)(self.handle.get(), 1)
         };
-        debug!("code={}", hr);
         if hr == SPXERR_TIMEOUT {
-            debug!("poll timer");
             match self.timer.poll().expect("timer failure") {
                 Async::NotReady => return Ok(Async::NotReady),
                 Async::Ready(_) => return self.poll(),
