@@ -23,7 +23,7 @@ impl EventFactory for Event {
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<Event, SpxError> {
         Ok(Event {
-            handle: SmartHandle::create(handle, recognizer_event_handle_release),
+            handle: SmartHandle::create("Event", handle, recognizer_event_handle_release),
         })
     }
 }
@@ -128,7 +128,7 @@ impl BaseRecognitionResultEvent {
     #[inline(always)]
     fn get_result_handle(event_handle: SPXEVENTHANDLE) -> Result<Arc<SmartHandle<SPXRESULTHANDLE>>, SpxError> {
         let handle = ::spx_populate(event_handle, recognizer_recognition_event_get_result)?;
-        Ok(Arc::new(SmartHandle::create(handle, recognizer_result_handle_release)))
+        Ok(Arc::new(SmartHandle::create("RecognitionResult", handle, recognizer_result_handle_release)))
     }
 }
 

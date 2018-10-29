@@ -51,7 +51,7 @@ impl PropertyBag {
               f: unsafe extern "C" fn(SPXHANDLE, *mut SPXPROPERTYBAGHANDLE) -> SPXHR) -> Result<PropertyBag, SpxError> {
         let handle = ::spx_populate(hcfg, f)?;
         Ok(PropertyBag {
-            handle: SmartHandle::create(handle, property_bag_release),
+            handle: SmartHandle::create("PropertyBag", handle, property_bag_release),
         })
     }
 

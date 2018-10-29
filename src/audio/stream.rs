@@ -48,7 +48,7 @@ impl PushAudioInputStream {
         }
         let result = PushAudioInputStream {
             base: BaseAudioInputStream {
-                handle: SmartHandle::create(handle, audio_stream_release),
+                handle: SmartHandle::create("PushAudioInputStream", handle, audio_stream_release),
                 format,
             }
         };

@@ -37,7 +37,7 @@ impl AsyncHandle {
             convert_err(init_fn(hreco, &mut handle))?;
         }
         Ok(AsyncHandle {
-            handle: SmartHandle::create(handle, recognizer_async_handle_release),
+            handle: SmartHandle::create("AsyncHandle", handle, recognizer_async_handle_release),
             wait_fn,
             timer: Interval::new(Instant::now(), Duration::from_millis(PULL_INTERVAL_MS)),
         })

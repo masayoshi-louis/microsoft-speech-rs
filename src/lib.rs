@@ -14,6 +14,7 @@ pub use property::PropertyBag;
 pub use property::PropertyId;
 use speech_api::*;
 use std::ffi;
+use std::fmt::Debug;
 use std::os::raw::c_char;
 
 pub mod audio;
@@ -132,15 +133,17 @@ fn convert_err(hr: usize) -> Result<(), SpxError> {
 }
 
 #[derive(Debug)]
-pub struct SmartHandle<T: Copy> {
+pub struct SmartHandle<T: Copy + Debug> {
     internal: T,
     release_fn: unsafe extern "C" fn(T) -> SPXHR,
+    name: &'static str,
 }
 
-impl<T: Copy> SmartHandle<T> {
+impl<T: Copy + Debug> SmartHandle<T> {
     #[inline(always)]
-    fn create(handle: T, release_fn: unsafe extern "C" fn(T) -> SPXHR) -> SmartHandle<T> {
-        SmartHandle { internal: handle, release_fn }
+    fn create(name: &'static str, handle: T, release_fn: unsafe extern "C" fn(T) -> SPXHR) -> SmartHandle<T> {
+        debug!("Create SmartHandle {}{{{:?}}}", name, handle);
+        SmartHandle { internal: handle, release_fn, name }
     }
 
     #[inline(always)]
@@ -149,15 +152,16 @@ impl<T: Copy> SmartHandle<T> {
     }
 }
 
-impl<T: Copy> Drop for SmartHandle<T> {
+impl<T: Copy + Debug> Drop for SmartHandle<T> {
     fn drop(&mut self) {
+        debug!("Drop SmartHandle {}{{{:?}}}", self.name, self.internal);
         unsafe {
             (self.release_fn)(self.internal);
         }
     }
 }
 
-unsafe impl<T: Copy> Send for SmartHandle<T> {}
+unsafe impl<T: Copy + Debug> Send for SmartHandle<T> {}
 
 pub struct FfiObject {
     pub ptr: *mut u8,

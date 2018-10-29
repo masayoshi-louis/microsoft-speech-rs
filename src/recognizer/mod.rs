@@ -83,7 +83,7 @@ unsafe impl Sync for BaseRecognizer {}
 impl BaseRecognizer {
     fn create(handle: SPXRECOHANDLE) -> Result<BaseRecognizer, SpxError> {
         Ok(BaseRecognizer {
-            handle: SmartHandle::create(handle, recognizer_handle_release)
+            handle: SmartHandle::create("Recognizer", handle, recognizer_handle_release)
         })
     }
 }

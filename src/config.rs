@@ -25,7 +25,7 @@ impl SpeechConfig {
             convert_err(speech_config_from_subscription(&mut handle, c_sub.as_ptr(), c_region.as_ptr()))?;
         }
         let result = SpeechConfig {
-            handle: SmartHandle::create(handle, speech_config_release),
+            handle: SmartHandle::create("SpeechConfig", handle, speech_config_release),
             props: PropertyBag::create(handle, speech_config_get_property_bag)?,
         };
         Ok(result)

@@ -16,7 +16,7 @@ impl AudioStreamFormat {
             convert_err(audio_stream_format_create_from_default_input(&mut handle))?;
         }
         let result = AudioStreamFormat {
-            handle: SmartHandle::create(handle, audio_stream_format_release),
+            handle: SmartHandle::create("AudioStreamFormat", handle, audio_stream_format_release),
         };
         Ok(result)
     }
@@ -32,7 +32,7 @@ impl AudioStreamFormat {
             ))?;
         }
         let result = AudioStreamFormat {
-            handle: SmartHandle::create(handle, audio_stream_format_release),
+            handle: SmartHandle::create("AudioStreamFormat", handle, audio_stream_format_release),
         };
         Ok(result)
     }
