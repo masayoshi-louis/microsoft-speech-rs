@@ -15,6 +15,8 @@ pub use property::PropertyId;
 use speech_api::*;
 use std::ffi;
 use std::fmt::Debug;
+use std::fmt::Display;
+use std::fmt::Formatter;
 use std::os::raw::c_char;
 
 pub mod audio;
@@ -142,8 +144,9 @@ pub struct SmartHandle<T: Copy + Debug> {
 impl<T: Copy + Debug> SmartHandle<T> {
     #[inline(always)]
     fn create(name: &'static str, handle: T, release_fn: unsafe extern "C" fn(T) -> SPXHR) -> SmartHandle<T> {
-        debug!("Create SmartHandle {}{{{:?}}}.", name, handle);
-        SmartHandle { internal: handle, release_fn, name }
+        let result = SmartHandle { internal: handle, release_fn, name };
+        debug!("Create SmartHandle {}.", result);
+        return result;
     }
 
     #[inline(always)]
@@ -154,11 +157,17 @@ impl<T: Copy + Debug> SmartHandle<T> {
 
 impl<T: Copy + Debug> Drop for SmartHandle<T> {
     fn drop(&mut self) {
-        debug!("Drop SmartHandle {}{{{:?}}}.", self.name, self.internal);
+        debug!("Drop SmartHandle {}.", self);
         let hr = unsafe { (self.release_fn)(self.internal) };
         if hr != SPX_NOERROR {
-            panic!("can not release handle, err={}", hr);
+            panic!("can not release SmartHandle {}, err={}", self, hr);
         }
+    }
+}
+
+impl<T: Copy + Debug> Display for SmartHandle<T> {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+        write!(f, "{}{{{:?}}}", self.name, self.internal)
     }
 }
 
