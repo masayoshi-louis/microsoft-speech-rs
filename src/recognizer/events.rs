@@ -9,10 +9,8 @@ use std::sync::Arc;
 
 const SESSION_ID_SIZE: usize = 32; // UUID
 
-pub trait EventFactory {
-    type R;
-
-    fn create(handle: SPXEVENTHANDLE) -> Result<Self::R, SpxError>;
+pub trait EventFactory: Sized {
+    fn create(handle: SPXEVENTHANDLE) -> Result<Self, SpxError>;
 }
 
 // Event
@@ -22,8 +20,6 @@ pub struct Event {
 }
 
 impl EventFactory for Event {
-    type R = Event;
-
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<Event, SpxError> {
         Ok(Event {
@@ -54,8 +50,6 @@ impl Deref for SessionEvent {
 }
 
 impl EventFactory for SessionEvent {
-    type R = SessionEvent;
-
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<SessionEvent, SpxError> {
         Ok(SessionEvent {
@@ -89,8 +83,6 @@ impl Deref for RecognitionEvent {
 }
 
 impl EventFactory for RecognitionEvent {
-    type R = RecognitionEvent;
-
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<RecognitionEvent, SpxError> {
         Ok(RecognitionEvent {
@@ -123,8 +115,6 @@ impl Deref for BaseRecognitionResultEvent {
 }
 
 impl EventFactory for BaseRecognitionResultEvent {
-    type R = BaseRecognitionResultEvent;
-
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<BaseRecognitionResultEvent, SpxError> {
         Ok(BaseRecognitionResultEvent {
@@ -157,8 +147,6 @@ impl Deref for RecognitionResultEvent {
 }
 
 impl EventFactory for RecognitionResultEvent {
-    type R = RecognitionResultEvent;
-
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<RecognitionResultEvent, SpxError> {
         Ok(RecognitionResultEvent {
@@ -189,8 +177,6 @@ impl Deref for RecognitionCanceledEvent {
 }
 
 impl EventFactory for RecognitionCanceledEvent {
-    type R = RecognitionCanceledEvent;
-
     #[inline]
     fn create(handle: SPXEVENTHANDLE) -> Result<RecognitionCanceledEvent, SpxError> {
         Ok(RecognitionCanceledEvent {

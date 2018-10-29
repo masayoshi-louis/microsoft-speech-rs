@@ -33,7 +33,7 @@ pub trait Recognizer: Send + Sync {
 }
 
 pub trait AsyncRecognizer<E, C>: Deref<Target=dyn Recognizer>
-    where E: EventFactory<R=E>, C: EventFactory<R=C> {
+    where E: EventFactory, C: EventFactory {
     fn start_continuous_recognition(&self) -> Result<AsyncHandle, SpxError>;
     fn stop_continuous_recognition(&self) -> Result<AsyncHandle, SpxError>;
 
@@ -125,7 +125,7 @@ struct AbstractAsyncRecognizer<E, C> {
 }
 
 impl<E, C> AsyncRecognizer<E, C> for AbstractAsyncRecognizer<E, C>
-    where E: EventFactory<R=E>, C: EventFactory<R=C> {
+    where E: EventFactory, C: EventFactory {
     fn start_continuous_recognition(&self) -> Result<AsyncHandle, SpxError> {
         self.set_callback(&self.canceled_sender, recognizer_canceled_set_callback);
         self.set_callback(&self.session_started_sender, recognizer_session_started_set_callback);
@@ -192,7 +192,7 @@ impl<E, C> AbstractAsyncRecognizer<E, C> {
     fn set_callback<T>(&self,
                        sender: &Option<Box<Sender<T>>>,
                        f: unsafe extern "C" fn(SPXRECOHANDLE, PRECOGNITION_CALLBACK_FUNC, *const c_void) -> SPXHR)
-        where T: EventFactory<R=T> {
+        where T: EventFactory {
         if let Some(s) = sender {
             let s = s.as_ref();
             let cb: PRECOGNITION_CALLBACK_FUNC = Some(|_, h_evt, p_sender| {
