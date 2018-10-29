@@ -142,7 +142,7 @@ pub struct SmartHandle<T: Copy + Debug> {
 impl<T: Copy + Debug> SmartHandle<T> {
     #[inline(always)]
     fn create(name: &'static str, handle: T, release_fn: unsafe extern "C" fn(T) -> SPXHR) -> SmartHandle<T> {
-        debug!("Create SmartHandle {}{{{:?}}}", name, handle);
+        debug!("Create SmartHandle {}{{{:?}}}.", name, handle);
         SmartHandle { internal: handle, release_fn, name }
     }
 
@@ -154,9 +154,10 @@ impl<T: Copy + Debug> SmartHandle<T> {
 
 impl<T: Copy + Debug> Drop for SmartHandle<T> {
     fn drop(&mut self) {
-        debug!("Drop SmartHandle {}{{{:?}}}", self.name, self.internal);
-        unsafe {
-            (self.release_fn)(self.internal);
+        debug!("Drop SmartHandle {}{{{:?}}}.", self.name, self.internal);
+        let hr = unsafe { (self.release_fn)(self.internal) };
+        if hr != SPX_NOERROR {
+            panic!("can not release handle, err={}", hr);
         }
     }
 }
