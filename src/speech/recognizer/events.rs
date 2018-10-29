@@ -112,6 +112,8 @@ pub struct BaseRecognitionResultEvent {
     result_handle: Arc<SmartHandle<SPXRESULTHANDLE>>,
 }
 
+unsafe impl Send for BaseRecognitionResultEvent {}
+
 impl Deref for BaseRecognitionResultEvent {
     type Target = RecognitionEvent;
 

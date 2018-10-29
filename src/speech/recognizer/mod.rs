@@ -25,7 +25,7 @@ const RESULT_ID_SIZE: usize = 32; // UUID
 
 const MAX_TEXT_CHAR_COUNT: usize = 1024;
 
-pub trait Recognizer: Send {
+pub trait Recognizer: Send + Sync {
     fn is_enabled(&self) -> Result<bool, SpxError>;
     fn enable(&mut self) -> Result<(), SpxError>;
     fn disable(&mut self) -> Result<(), SpxError>;
@@ -77,6 +77,8 @@ pub trait AsyncRecognizer<E, C>: Deref<Target=dyn Recognizer>
 struct BaseRecognizer {
     handle: SmartHandle<SPXRECOHANDLE>,
 }
+
+unsafe impl Sync for BaseRecognizer {}
 
 impl BaseRecognizer {
     fn create(handle: SPXRECOHANDLE) -> Result<BaseRecognizer, SpxError> {
