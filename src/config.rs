@@ -9,7 +9,6 @@ use std::ops::Deref;
 use std::ops::DerefMut;
 
 
-
 #[derive(Debug)]
 pub struct SpeechConfig {
     handle: SmartHandle<SPXSPEECHCONFIGHANDLE>,
