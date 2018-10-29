@@ -199,18 +199,24 @@ impl Drop for FfiObject {
 #[inline(always)]
 fn spx_populate_string(handle: SPXHANDLE, max_chars: usize,
                        f: unsafe extern "C" fn(SPXHANDLE, *mut c_char, u32) -> SPXHR) -> Result<String, SpxError> {
-    let buff = FfiObject::new_uninitialized(max_chars + 1);
-    let ptr = buff.ptr as *mut c_char;
-    unsafe {
-        convert_err(f(handle, ptr, buff.size as u32))?;
-        for i in 0..buff.size {
+    #[inline(always)]
+    unsafe fn find_nul_char(ptr: *mut c_char, size: usize) -> Result<usize, SpxError> {
+        for i in 0..size {
             if *ptr.offset(i as isize) == 0 {
-                let vec = buff.into_vec(i);
-                return Ok(String::from_utf8(vec)?);
+                return Ok(i);
             }
         }
+        Err(SpxError::InvalidCString)
     }
-    Err(SpxError::InvalidCString)
+
+    let buff = FfiObject::new_uninitialized(max_chars + 1);
+    let len = unsafe {
+        let ptr = buff.ptr as *mut c_char;
+        convert_err(f(handle, ptr, buff.size as u32))?;
+        find_nul_char(ptr, buff.size)
+    }?;
+    let vec = buff.into_vec(len);
+    Ok(String::from_utf8(vec)?)
 }
 
 #[inline(always)]
