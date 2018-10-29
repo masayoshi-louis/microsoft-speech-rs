@@ -1,6 +1,6 @@
+use audio::AudioStreamFormat;
 use convert_err;
 use SmartHandle;
-use speech::audio::AudioStreamFormat;
 use speech_api::*;
 use SpxError;
 use SPXHANDLE_INVALID;

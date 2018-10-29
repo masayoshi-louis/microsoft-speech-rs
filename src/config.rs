@@ -8,8 +8,7 @@ use std::ffi::CString;
 use std::ops::Deref;
 use std::ops::DerefMut;
 
-pub mod audio;
-pub mod recognizer;
+
 
 #[derive(Debug)]
 pub struct SpeechConfig {

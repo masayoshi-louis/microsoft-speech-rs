@@ -1,12 +1,12 @@
 use convert_err;
 use futures::sync::mpsc::{channel, Receiver, Sender};
 use num::FromPrimitive;
+use recognizer::events::EventFactory;
+use recognizer::events::SessionEvent;
 use ResultReason;
 pub use self::async_handle::AsyncHandle;
 pub use self::speech::*;
 use SmartHandle;
-use speech::recognizer::events::EventFactory;
-use speech::recognizer::events::SessionEvent;
 use speech_api::*;
 use SpxError;
 use std::ffi::c_void;

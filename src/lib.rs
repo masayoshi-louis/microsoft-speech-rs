@@ -9,15 +9,18 @@ extern crate log;
 extern crate num;
 extern crate tokio;
 
+pub use config::SpeechConfig;
 pub use property::PropertyBag;
 pub use property::PropertyId;
 use speech_api::*;
 use std::ffi;
 use std::os::raw::c_char;
 
+pub mod audio;
+pub mod recognizer;
 mod speech_api;
-pub mod speech;
 mod property;
+mod config;
 
 const SPXHANDLE_INVALID: SPXHANDLE = 0 as SPXHANDLE;
 

@@ -1,7 +1,7 @@
 use CancellationReason;
 use num::FromPrimitive;
+use recognizer::RecognitionResult;
 use SmartHandle;
-use speech::recognizer::RecognitionResult;
 use speech_api::*;
 use SpxError;
 use std::ops::Deref;

@@ -1,8 +1,8 @@
 use convert_err;
+use SmartHandle;
 use speech_api::*;
 use SpxError;
 use SPXHANDLE_INVALID;
-use SmartHandle;
 
 #[derive(Debug)]
 pub struct AudioStreamFormat {
