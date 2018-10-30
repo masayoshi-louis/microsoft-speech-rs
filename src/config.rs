@@ -50,3 +50,9 @@ impl DerefMut for SpeechConfig {
         &mut self.props
     }
 }
+
+impl AsRef<SpeechConfig> for SpeechConfig {
+    fn as_ref(&self) -> &SpeechConfig {
+        self
+    }
+}
