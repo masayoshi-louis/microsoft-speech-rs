@@ -10,6 +10,7 @@ use speech_api::*;
 use SpeechConfig;
 use SpxError;
 use SPXHANDLE_INVALID;
+use std::borrow::Borrow;
 use std::ops::Deref;
 use std::ops::DerefMut;
 
@@ -25,15 +26,15 @@ pub struct SpeechRecognizer<CFG, S> {
 }
 
 impl<CFG, S> SpeechRecognizer<CFG, S>
-    where S: AsRef<dyn AudioInputStream>,
-          CFG: AsRef<SpeechConfig> {
+    where S: Borrow<dyn AudioInputStream>,
+          CFG: Borrow<SpeechConfig> {
     pub fn from_config(config: CFG, audio: AudioConfig<S>) -> Result<SpeechRecognizer<CFG, S>, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
         unsafe {
             convert_err(
                 recognizer_create_speech_recognizer_from_config(
                     &mut handle,
-                    config.as_ref().get_handle(),
+                    config.borrow().get_handle(),
                     audio.get_handle(),
                 )
             )?;

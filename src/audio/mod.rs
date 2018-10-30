@@ -6,6 +6,7 @@ use SmartHandle;
 use speech_api::*;
 use SpxError;
 use SPXHANDLE_INVALID;
+use std::borrow::Borrow;
 
 mod stream;
 mod stream_format;
@@ -16,13 +17,13 @@ pub struct AudioConfig<S> {
     stream: S,
 }
 
-impl<S: AsRef<dyn AudioInputStream>> AudioConfig<S> {
+impl<S: Borrow<dyn AudioInputStream>> AudioConfig<S> {
     pub fn from_stream_input(stream: S) -> Result<AudioConfig<S>, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
         unsafe {
             convert_err(audio_config_create_audio_input_from_stream(
                 &mut handle,
-                stream.as_ref().get_handle(),
+                stream.borrow().get_handle(),
             ))?;
         }
         let result = AudioConfig {
