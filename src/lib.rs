@@ -121,8 +121,8 @@ enum_from_primitive! {
 #[derive(Debug, PartialEq)]
 pub enum CancellationReason
 {
-    CancellationReason_Error = 1,
-    CancellationReason_EndOfStream = 2,
+    CancellationReasonError = 1,
+    CancellationReasonEndOfStream = 2,
 }
 }
 
