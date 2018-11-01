@@ -2535,11 +2535,11 @@ extern "C" {
     pub fn audio_stream_release(haudioStream: SPXAUDIOSTREAMHANDLE) -> SPXHR;
 }
 pub type CUSTOM_AUDIO_PULL_STREAM_READ_CALLBACK = ::std::option::Option<
-    unsafe extern "C" fn(pvContext: *mut ::std::os::raw::c_void, buffer: *mut u8, size: u32)
+    fn(pvContext: *mut ::std::os::raw::c_void, buffer: *mut u8, size: u32)
         -> ::std::os::raw::c_int,
 >;
 pub type CUSTOM_AUDIO_PULL_STREAM_CLOSE_CALLBACK =
-    ::std::option::Option<unsafe extern "C" fn(pvContext: *mut ::std::os::raw::c_void)>;
+    ::std::option::Option<fn(pvContext: *mut ::std::os::raw::c_void)>;
 extern "C" {
     pub fn pull_audio_input_stream_set_callbacks(
         haudioStream: SPXAUDIOSTREAMHANDLE,

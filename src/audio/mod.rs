@@ -1,6 +1,7 @@
 use convert_err;
 pub use self::stream::AudioInputStream;
 pub use self::stream::AudioStreamSink;
+pub use self::stream::PullAudioInputStreamCallback;
 pub use self::stream_format::AudioStreamFormat;
 use SmartHandle;
 use speech_api::*;
