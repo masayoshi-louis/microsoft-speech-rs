@@ -22,20 +22,20 @@ pub struct SpeechRecognizer<CFG, S> {
     #[allow(unused)]
     config: CFG,
     #[allow(unused)]
-    audio: AudioConfig<S>,
+    audio: Option<AudioConfig<S>>,
 }
 
 impl<CFG, S> SpeechRecognizer<CFG, S>
     where S: Borrow<dyn AudioInputStream>,
           CFG: Borrow<SpeechConfig> {
-    pub fn from_config(config: CFG, audio: AudioConfig<S>) -> Result<SpeechRecognizer<CFG, S>, SpxError> {
+    pub fn from_config(config: CFG, audio: Option<AudioConfig<S>>) -> Result<SpeechRecognizer<CFG, S>, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
         unsafe {
             convert_err(
                 recognizer_create_speech_recognizer_from_config(
                     &mut handle,
                     config.borrow().get_handle(),
-                    audio.get_handle(),
+                    audio.as_ref().map(|c| c.get_handle()).unwrap_or(0 as SPXAUDIOCONFIGHANDLE),
                 )
             )?;
         }
