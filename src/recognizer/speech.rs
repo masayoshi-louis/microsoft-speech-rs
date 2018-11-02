@@ -1,5 +1,4 @@
 use audio::AudioConfig;
-use audio::AudioInputStream;
 use convert_err;
 use recognizer::AbstractAsyncRecognizer;
 use recognizer::AsyncRecognizer;
@@ -17,18 +16,17 @@ use std::ops::DerefMut;
 type E = RecognitionResultEvent;
 type C = RecognitionCanceledEvent;
 
-pub struct SpeechRecognizer<CFG, S> {
+pub struct SpeechRecognizer<CFG> {
     base: AbstractAsyncRecognizer<E, C>,
     #[allow(unused)]
     config: CFG,
     #[allow(unused)]
-    audio: Option<AudioConfig<S>>,
+    audio: Option<AudioConfig>,
 }
 
-impl<CFG, S> SpeechRecognizer<CFG, S>
-    where S: Borrow<dyn AudioInputStream>,
-          CFG: Borrow<SpeechConfig> {
-    pub fn from_config(config: CFG, audio: Option<AudioConfig<S>>) -> Result<SpeechRecognizer<CFG, S>, SpxError> {
+impl<CFG> SpeechRecognizer<CFG>
+    where CFG: Borrow<SpeechConfig> {
+    pub fn from_config(config: CFG, audio: Option<AudioConfig>) -> Result<SpeechRecognizer<CFG>, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
         unsafe {
             convert_err(
@@ -47,7 +45,7 @@ impl<CFG, S> SpeechRecognizer<CFG, S>
     }
 }
 
-impl<CFG, S> Deref for SpeechRecognizer<CFG, S> {
+impl<CFG> Deref for SpeechRecognizer<CFG> {
     type Target = dyn AsyncRecognizer<E, C, Target=dyn Recognizer>;
 
     fn deref(&self) -> &Self::Target {
@@ -55,7 +53,7 @@ impl<CFG, S> Deref for SpeechRecognizer<CFG, S> {
     }
 }
 
-impl<CFG, S> DerefMut for SpeechRecognizer<CFG, S> {
+impl<CFG> DerefMut for SpeechRecognizer<CFG> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
     }

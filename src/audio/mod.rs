@@ -13,14 +13,14 @@ use std::ffi::CString;
 mod stream;
 mod stream_format;
 
-pub struct AudioConfig<S> {
+pub struct AudioConfig {
     handle: SmartHandle<SPXAUDIOCONFIGHANDLE>,
     #[allow(unused)]
-    stream: Option<S>,
+    stream: Option<Box<dyn Borrow<dyn AudioInputStream>>>,
 }
 
-impl<S: Borrow<dyn AudioInputStream>> AudioConfig<S> {
-    pub fn from_stream_input(stream: S) -> Result<AudioConfig<S>, SpxError> {
+impl AudioConfig {
+    pub fn from_stream_input<S: Borrow<dyn AudioInputStream> + 'static>(stream: S) -> Result<AudioConfig, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
         unsafe {
             convert_err(audio_config_create_audio_input_from_stream(
@@ -30,12 +30,12 @@ impl<S: Borrow<dyn AudioInputStream>> AudioConfig<S> {
         }
         let result = AudioConfig {
             handle: SmartHandle::create("AudioConfig", handle, audio_config_release),
-            stream: Some(stream),
+            stream: Some(Box::new(stream)),
         };
         Ok(result)
     }
 
-    pub fn from_wav_file_input<NM: AsRef<str>>(file_name: NM) -> Result<AudioConfig<S>, SpxError> {
+    pub fn from_wav_file_input<NM: AsRef<str>>(file_name: NM) -> Result<AudioConfig, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
         let c_file_name = CString::new(file_name.as_ref())?;
         unsafe {
