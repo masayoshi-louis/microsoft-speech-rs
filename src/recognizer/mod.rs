@@ -17,6 +17,7 @@ use speech_api::*;
 use SpxError;
 
 pub use self::async_handle::AsyncHandle;
+pub use self::async_handle::AsyncResultHandle;
 pub use self::speech::*;
 
 mod async_handle;
