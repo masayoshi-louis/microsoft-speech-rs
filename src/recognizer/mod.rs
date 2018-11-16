@@ -1,19 +1,23 @@
-use convert_err;
-use futures::sync::mpsc::{channel, Receiver, Sender};
-use num::FromPrimitive;
-use recognizer::events::EventFactory;
-use recognizer::events::SessionEvent;
-use ResultReason;
-pub use self::async_handle::AsyncHandle;
-pub use self::speech::*;
-use SmartHandle;
-use speech_api::*;
-use SpxError;
 use std::ffi::c_void;
 use std::ops::Deref;
 use std::os::raw::c_char;
 use std::sync::Arc;
 use std::time::Duration;
+
+use futures::sync::mpsc::{channel, Receiver, Sender};
+use num::FromPrimitive;
+
+use convert_err;
+use FromHandle;
+use recognizer::events::EventFactory;
+use recognizer::events::SessionEvent;
+use ResultReason;
+use SmartHandle;
+use speech_api::*;
+use SpxError;
+
+pub use self::async_handle::AsyncHandle;
+pub use self::speech::*;
 
 mod async_handle;
 pub mod events;
@@ -269,5 +273,14 @@ impl RecognitionResult {
     fn populate<T>(&self,
                    f: unsafe extern "C" fn(SPXRESULTHANDLE, *mut T) -> SPXHR) -> Result<T, SpxError> {
         ::spx_populate(self.get_handle(), f)
+    }
+}
+
+impl FromHandle for RecognitionResult {
+    type Handle = Arc<SmartHandle<SPXRESULTHANDLE>>;
+    type Err = SpxError;
+
+    fn from_handle(handle: Arc<SmartHandle<SPXRESULTHANDLE>>) -> Result<RecognitionResult, SpxError> {
+        RecognitionResult::create(handle)
     }
 }

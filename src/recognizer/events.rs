@@ -1,11 +1,14 @@
-use CancellationReason;
+use std::ops::Deref;
+use std::sync::Arc;
+
 use num::FromPrimitive;
+
+use CancellationReason;
+use FromHandle;
 use recognizer::RecognitionResult;
 use SmartHandle;
 use speech_api::*;
 use SpxError;
-use std::ops::Deref;
-use std::sync::Arc;
 
 const SESSION_ID_SIZE: usize = 32; // UUID
 
@@ -157,7 +160,7 @@ impl EventFactory for RecognitionResultEvent {
 
 impl RecognitionResultEvent {
     pub fn result(&self) -> Result<RecognitionResult, SpxError> {
-        RecognitionResult::create(self.result_handle.clone())
+        RecognitionResult::from_handle(self.result_handle.clone())
     }
 }
 

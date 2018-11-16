@@ -9,15 +9,16 @@ extern crate log;
 extern crate num;
 extern crate tokio;
 
-pub use config::SpeechConfig;
-pub use property::PropertyBag;
-pub use property::PropertyId;
-use speech_api::*;
 use std::ffi;
 use std::fmt::Debug;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::os::raw::c_char;
+
+pub use config::SpeechConfig;
+pub use property::PropertyBag;
+pub use property::PropertyId;
+use speech_api::*;
 
 pub mod audio;
 pub mod recognizer;
@@ -242,4 +243,11 @@ fn spx_populate<T>(handle: SPXHANDLE,
         convert_err(f(handle, &mut result))?;
         return Ok(result);
     }
+}
+
+trait FromHandle: Sized {
+    type Handle;
+    type Err;
+
+    fn from_handle(handle: Self::Handle) -> Result<Self, Self::Err>;
 }
