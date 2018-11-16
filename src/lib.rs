@@ -174,6 +174,13 @@ impl<T: Copy + Debug> Display for SmartHandle<T> {
 
 unsafe impl<T: Copy + Debug> Send for SmartHandle<T> {}
 
+pub trait FromHandle: Sized {
+    type Handle;
+    type Err;
+
+    fn from_handle(handle: Self::Handle) -> Result<Self, Self::Err>;
+}
+
 pub struct FfiObject {
     pub ptr: *mut u8,
     pub size: usize,
@@ -243,11 +250,4 @@ fn spx_populate<T>(handle: SPXHANDLE,
         convert_err(f(handle, &mut result))?;
         return Ok(result);
     }
-}
-
-trait FromHandle: Sized {
-    type Handle;
-    type Err;
-
-    fn from_handle(handle: Self::Handle) -> Result<Self, Self::Err>;
 }
