@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use std::ops::Deref;
 use std::sync::Arc;
 
@@ -5,7 +6,6 @@ use num::FromPrimitive;
 
 use CancellationReason;
 use FromHandle;
-use recognizer::RecognitionResult;
 use SmartHandle;
 use speech_api::*;
 use SpxError;
@@ -137,11 +137,12 @@ impl BaseRecognitionResultEvent {
 
 // RecognitionResultEvent
 
-pub struct RecognitionResultEvent {
+pub struct RecognitionResultEvent<R> {
     base: BaseRecognitionResultEvent,
+    phantom_r: PhantomData<R>,
 }
 
-impl Deref for RecognitionResultEvent {
+impl<R> Deref for RecognitionResultEvent<R> {
     type Target = BaseRecognitionResultEvent;
 
     fn deref(&self) -> &Self::Target {
@@ -149,18 +150,20 @@ impl Deref for RecognitionResultEvent {
     }
 }
 
-impl EventFactory for RecognitionResultEvent {
+impl<R> EventFactory for RecognitionResultEvent<R> {
     #[inline]
-    fn create(handle: SPXEVENTHANDLE) -> Result<RecognitionResultEvent, SpxError> {
+    fn create(handle: SPXEVENTHANDLE) -> Result<RecognitionResultEvent<R>, SpxError> {
         Ok(RecognitionResultEvent {
             base: BaseRecognitionResultEvent::create(handle)?,
+            phantom_r: PhantomData,
         })
     }
 }
 
-impl RecognitionResultEvent {
-    pub fn result(&self) -> Result<RecognitionResult, SpxError> {
-        RecognitionResult::from_handle(self.result_handle.clone())
+impl<R> RecognitionResultEvent<R>
+    where R: FromHandle<Handle=Arc<SmartHandle<SPXRESULTHANDLE>>, Err=SpxError> {
+    pub fn result(&self) -> Result<R, SpxError> {
+        R::from_handle(self.result_handle.clone())
     }
 }
 
