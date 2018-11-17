@@ -1,6 +1,5 @@
 use std;
 use std::marker::PhantomData;
-use std::ops::Deref;
 use std::sync::Arc;
 use std::time::Duration;
 use std::time::Instant;
@@ -35,17 +34,12 @@ impl AsyncWait for AsyncWaitFn {
 }
 
 pub struct BaseAsyncHandle<W> {
-    handle: SmartHandle<SPXASYNCHANDLE>,
+    handle: Option<SmartHandle<SPXASYNCHANDLE>>,
     timer: Interval,
     async_wait: W,
-}
-
-impl<W> Deref for BaseAsyncHandle<W> {
-    type Target = SmartHandle<SPXASYNCHANDLE>;
-
-    fn deref(&self) -> &SmartHandle<SPXASYNCHANDLE> {
-        &self.handle
-    }
+    // for lazy initialization
+    hreco: SPXRECOHANDLE,
+    init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
 }
 
 impl<W: AsyncWait> BaseAsyncHandle<W> {
@@ -54,14 +48,12 @@ impl<W: AsyncWait> BaseAsyncHandle<W> {
               init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
               async_wait: W,
               poll_interval: Duration) -> Result<BaseAsyncHandle<W>, SpxError> {
-        let mut handle = SPXHANDLE_INVALID;
-        unsafe {
-            convert_err(init_fn(hreco, &mut handle))?;
-        }
         Ok(BaseAsyncHandle {
-            handle: SmartHandle::create("BaseAsyncHandle", handle, recognizer_async_handle_release),
+            handle: None,
             timer: Interval::new(Instant::now(), poll_interval),
             async_wait,
+            hreco,
+            init_fn,
         })
     }
 }
@@ -71,6 +63,17 @@ impl<W: AsyncWait> Future for BaseAsyncHandle<W> {
     type Error = SpxError;
 
     fn poll(&mut self) -> Result<Async<Self::Item>, Self::Error> {
+        if self.handle.is_none() {
+            let mut handle = SPXHANDLE_INVALID;
+            unsafe {
+                convert_err((self.init_fn)(self.hreco, &mut handle))?;
+            }
+            self.handle = Some(SmartHandle::create(
+                "BaseAsyncHandle",
+                handle,
+                recognizer_async_handle_release,
+            ));
+        }
         match self.timer.poll().expect("timer failure") {
             Async::NotReady => Ok(Async::NotReady),
             Async::Ready(_) => {
