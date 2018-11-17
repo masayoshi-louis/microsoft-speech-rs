@@ -41,6 +41,7 @@ pub trait AsyncRecognizer<E, C>: Deref<Target=dyn Recognizer>
     where E: EventFactory, C: EventFactory {
     fn start_continuous_recognition(&self) -> Result<AsyncHandle, SpxError>;
     fn stop_continuous_recognition(&self) -> Result<AsyncHandle, SpxError>;
+    fn recognize_once_async(&self) -> Result<AsyncResultHandle<RecognitionResult>, SpxError>;
 
     fn set_recognizing_channel(&mut self, v: Option<Box<Sender<E>>>);
     fn set_recognized_channel(&mut self, v: Option<Box<Sender<E>>>);
@@ -149,6 +150,14 @@ impl<E, C> AsyncRecognizer<E, C> for AbstractAsyncRecognizer<E, C>
             self.get_handle(),
             recognizer_stop_continuous_recognition_async,
             recognizer_stop_continuous_recognition_async_wait_for,
+        )
+    }
+
+    fn recognize_once_async(&self) -> Result<AsyncResultHandle<RecognitionResult>, SpxError> {
+        AsyncResultHandle::create(
+            self.get_handle(),
+            recognizer_recognize_once_async,
+            recognizer_recognize_once_async_wait_for,
         )
     }
 

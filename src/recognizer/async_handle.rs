@@ -150,11 +150,12 @@ impl<V> Future for AsyncResultHandle<V>
             Async::Ready(_) => {
                 let mut result_handle = Box::new(SPXHANDLE_INVALID);
                 std::mem::swap(&mut self.result_handle, &mut result_handle);
-                let v = V::from_handle(Arc::new(SmartHandle::create(
+                let smart_handle = Arc::new(SmartHandle::create(
                     "RecognitionResult",
                     *result_handle,
                     recognizer_result_handle_release,
-                )))?;
+                ));
+                let v = V::from_handle(smart_handle)?;
                 Ok(Async::Ready(v))
             }
         }
