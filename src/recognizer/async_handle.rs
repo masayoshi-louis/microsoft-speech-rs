@@ -42,6 +42,10 @@ pub struct BaseAsyncHandle<W> {
     init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
 }
 
+unsafe impl<W> Sync for BaseAsyncHandle<W> {}
+
+unsafe impl<W> Send for BaseAsyncHandle<W> {}
+
 impl<W: AsyncWait> BaseAsyncHandle<W> {
     pub(crate)
     fn create(hreco: SPXRECOHANDLE,
@@ -78,7 +82,7 @@ impl<W: AsyncWait> Future for BaseAsyncHandle<W> {
             Async::NotReady => Ok(Async::NotReady),
             Async::Ready(_) => {
                 let hr = unsafe {
-                    self.async_wait.async_wait(self.handle.get(), 0)
+                    self.async_wait.async_wait(self.handle.as_ref().unwrap().get(), 0)
                 };
                 if hr == SPXERR_TIMEOUT {
                     self.poll()

@@ -1,6 +1,6 @@
 [package]
 name = "microsoft_speech"
-version = "0.1.9"
+version = "0.1.10"
 authors = ["luyi <luyi@newtranx.com>"]
 
 [dependencies]
