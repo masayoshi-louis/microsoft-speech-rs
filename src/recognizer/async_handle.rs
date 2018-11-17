@@ -71,17 +71,20 @@ impl<W: AsyncWait> Future for BaseAsyncHandle<W> {
     type Error = SpxError;
 
     fn poll(&mut self) -> Result<Async<Self::Item>, Self::Error> {
-        let hr = unsafe {
-            self.async_wait.async_wait(self.handle.get(), 0)
-        };
-        if hr == SPXERR_TIMEOUT {
-            match self.timer.poll().expect("timer failure") {
-                Async::NotReady => return Ok(Async::NotReady),
-                Async::Ready(_) => return self.poll(),
+        match self.timer.poll().expect("timer failure") {
+            Async::NotReady => Ok(Async::NotReady),
+            Async::Ready(_) => {
+                let hr = unsafe {
+                    self.async_wait.async_wait(self.handle.get(), 0)
+                };
+                if hr == SPXERR_TIMEOUT {
+                    Ok(Async::NotReady)
+                } else {
+                    convert_err(hr)?;
+                    Ok(Async::Ready(()))
+                }
             }
         }
-        convert_err(hr)?;
-        Ok(Async::Ready(()))
     }
 }
 
