@@ -293,3 +293,7 @@ impl FromHandle for RecognitionResult {
         RecognitionResult::create(handle)
     }
 }
+
+unsafe impl Sync for RecognitionResult {}
+
+unsafe impl Send for RecognitionResult {}
