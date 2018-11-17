@@ -88,6 +88,7 @@ pub struct AsyncHandle {
 }
 
 impl AsyncHandle {
+    #[inline]
     pub(crate)
     fn create(hreco: SPXRECOHANDLE,
               init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
@@ -125,6 +126,7 @@ pub struct AsyncResultHandle<V> {
 }
 
 impl<V> AsyncResultHandle<V> {
+    #[inline]
     pub(crate)
     fn create(hreco: SPXRECOHANDLE,
               init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
