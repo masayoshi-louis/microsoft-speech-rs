@@ -78,7 +78,7 @@ impl<W: AsyncWait> Future for BaseAsyncHandle<W> {
                     self.async_wait.async_wait(self.handle.get(), 0)
                 };
                 if hr == SPXERR_TIMEOUT {
-                    Ok(Async::NotReady)
+                    self.poll()
                 } else {
                     convert_err(hr)?;
                     Ok(Async::Ready(()))
