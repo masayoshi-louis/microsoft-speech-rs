@@ -15,7 +15,8 @@ use speech_api::*;
 use SpxError;
 use SPXHANDLE_INVALID;
 
-const PULL_INTERVAL_MS: u64 = 30;
+const PULL_INTERVAL_MS_1: u64 = 30;
+const PULL_INTERVAL_MS_2: u64 = 100;
 
 const SPXERR_TIMEOUT: SPXHR = 0x06;
 
@@ -51,14 +52,15 @@ impl<W: AsyncWait> BaseAsyncHandle<W> {
     pub(crate)
     fn create(hreco: SPXRECOHANDLE,
               init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
-              async_wait: W) -> Result<BaseAsyncHandle<W>, SpxError> {
+              async_wait: W,
+              poll_interval: Duration) -> Result<BaseAsyncHandle<W>, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
         unsafe {
             convert_err(init_fn(hreco, &mut handle))?;
         }
         Ok(BaseAsyncHandle {
             handle: SmartHandle::create("BaseAsyncHandle", handle, recognizer_async_handle_release),
-            timer: Interval::new(Instant::now(), Duration::from_millis(PULL_INTERVAL_MS)),
+            timer: Interval::new(Instant::now(), poll_interval),
             async_wait,
         })
     }
@@ -94,7 +96,12 @@ impl AsyncHandle {
               init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
               wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32) -> SPXHR) -> Result<AsyncHandle, SpxError> {
         Ok(AsyncHandle {
-            base: BaseAsyncHandle::create(hreco, init_fn, AsyncWaitFn { wait_fn })?
+            base: BaseAsyncHandle::create(
+                hreco,
+                init_fn,
+                AsyncWaitFn { wait_fn },
+                Duration::from_millis(PULL_INTERVAL_MS_1),
+            )?
         })
     }
 }
@@ -134,7 +141,7 @@ impl<V> AsyncResultHandle<V> {
         let mut result_handle = Box::new(SPXHANDLE_INVALID);
         let async_wait = AsyncResultWait { wait_fn, result_handle_ptr: &mut *result_handle };
         Ok(AsyncResultHandle {
-            base: BaseAsyncHandle::create(hreco, init_fn, async_wait)?,
+            base: BaseAsyncHandle::create(hreco, init_fn, async_wait, Duration::from_millis(PULL_INTERVAL_MS_2))?,
             result_handle,
             phantom_v: PhantomData,
         })
