@@ -132,11 +132,11 @@ struct AbstractAsyncRecognizer<E, C> {
 impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
     where E: EventFactory, C: EventFactory {
     fn start_continuous_recognition(&self) -> Result<AsyncHandle, SpxError> {
-        self.set_callback(&self.canceled_sender, recognizer_canceled_set_callback);
-        self.set_callback(&self.session_started_sender, recognizer_session_started_set_callback);
-        self.set_callback(&self.session_stopped_sender, recognizer_session_stopped_set_callback);
-        self.set_callback(&self.recognizing_sender, recognizer_recognizing_set_callback);
-        self.set_callback(&self.recognized_sender, recognizer_recognized_set_callback);
+        self.set_callback(&self.canceled_sender, recognizer_canceled_set_callback)?;
+        self.set_callback(&self.session_started_sender, recognizer_session_started_set_callback)?;
+        self.set_callback(&self.session_stopped_sender, recognizer_session_stopped_set_callback)?;
+        self.set_callback(&self.recognizing_sender, recognizer_recognizing_set_callback)?;
+        self.set_callback(&self.recognized_sender, recognizer_recognized_set_callback)?;
         AsyncHandle::create(
             self.get_handle(),
             recognizer_start_continuous_recognition_async,
@@ -204,7 +204,7 @@ impl<E, C> AbstractAsyncRecognizer<E, C> {
     #[inline]
     fn set_callback<T>(&self,
                        sender: &Option<Box<Sender<T>>>,
-                       f: unsafe extern "C" fn(SPXRECOHANDLE, PRECOGNITION_CALLBACK_FUNC, *const c_void) -> SPXHR)
+                       f: unsafe extern "C" fn(SPXRECOHANDLE, PRECOGNITION_CALLBACK_FUNC, *const c_void) -> SPXHR) -> Result<(), SpxError>
         where T: EventFactory {
         if let Some(s) = sender {
             let s = s.as_ref();
@@ -225,13 +225,14 @@ impl<E, C> AbstractAsyncRecognizer<E, C> {
                 }
             });
             unsafe {
-                f(self.get_handle(), cb, s as *const _ as *const c_void);
+                convert_err(f(self.get_handle(), cb, s as *const _ as *const c_void))?;
             }
         } else {
             unsafe {
-                f(self.get_handle(), None, 0 as *const c_void);
+                convert_err(f(self.get_handle(), None, 0 as *const c_void))?;
             }
         }
+        Ok(())
     }
 }
 
