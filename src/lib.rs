@@ -40,6 +40,8 @@ pub enum SpxError {
     InvalidCString,
     #[fail(display = "C string is not utf-8 encoded.")]
     FromUtf8Error(#[cause] std::string::FromUtf8Error),
+    #[fail(display = "Stream is dropped.")]
+    StreamDropped,
 }
 
 impl From<ffi::NulError> for SpxError {

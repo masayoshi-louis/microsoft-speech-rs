@@ -117,7 +117,7 @@ pub struct PushAudioInputStreamSink {
 impl AudioStreamSink for PushAudioInputStreamSink {
     fn write(&mut self, buf: impl AsRef<[u8]>) -> Result<(), SpxError> {
         match self.handle.upgrade() {
-            None => Ok(()),
+            None => Err(SpxError::StreamDropped),
             Some(handle) => unsafe {
                 let buf = buf.as_ref();
                 convert_err(push_audio_input_stream_write(handle.get(), buf.as_ptr(), buf.len() as u32))
@@ -127,7 +127,7 @@ impl AudioStreamSink for PushAudioInputStreamSink {
 
     fn close(&mut self) -> Result<(), SpxError> {
         match self.handle.upgrade() {
-            None => Ok(()),
+            None => Err(SpxError::StreamDropped),
             Some(handle) => unsafe {
                 convert_err(push_audio_input_stream_close(handle.get()))
             }
