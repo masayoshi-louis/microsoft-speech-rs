@@ -1,14 +1,15 @@
+use std::ffi::CString;
+
 use convert_err;
-pub use self::stream::AudioInputStream;
-pub use self::stream::AudioStreamSink;
-pub use self::stream::PullAudioInputStreamCallback;
-pub use self::stream_format::AudioStreamFormat;
 use SmartHandle;
 use speech_api::*;
 use SpxError;
 use SPXHANDLE_INVALID;
-use std::borrow::Borrow;
-use std::ffi::CString;
+
+pub use self::stream::AudioInputStream;
+pub use self::stream::AudioStreamSink;
+pub use self::stream::PullAudioInputStreamCallback;
+pub use self::stream_format::AudioStreamFormat;
 
 mod stream;
 mod stream_format;
@@ -16,21 +17,21 @@ mod stream_format;
 pub struct AudioConfig {
     handle: SmartHandle<SPXAUDIOCONFIGHANDLE>,
     #[allow(unused)]
-    stream: Option<Box<dyn Borrow<dyn AudioInputStream>>>,
+    stream: Option<Box<dyn AudioInputStream>>,
 }
 
 impl AudioConfig {
-    pub fn from_stream_input<S: Borrow<dyn AudioInputStream> + 'static>(stream: S) -> Result<AudioConfig, SpxError> {
+    pub fn from_stream_input(stream: Box<dyn AudioInputStream>) -> Result<AudioConfig, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
         unsafe {
             convert_err(audio_config_create_audio_input_from_stream(
                 &mut handle,
-                stream.borrow().get_handle(),
+                stream.get_handle(),
             ))?;
         }
         let result = AudioConfig {
             handle: SmartHandle::create("AudioConfig", handle, audio_config_release),
-            stream: Some(Box::new(stream)),
+            stream: Some(stream),
         };
         Ok(result)
     }
