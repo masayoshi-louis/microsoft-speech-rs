@@ -1,13 +1,13 @@
+use std::ffi::CString;
+use std::ops::Deref;
+use std::ops::DerefMut;
+
 use convert_err;
 use PropertyBag;
 use SmartHandle;
 use speech_api::*;
 use SpxError;
 use SPXHANDLE_INVALID;
-use std::ffi::CString;
-use std::ops::Deref;
-use std::ops::DerefMut;
-
 
 #[derive(Debug)]
 pub struct SpeechConfig {

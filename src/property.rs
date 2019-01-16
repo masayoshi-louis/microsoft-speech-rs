@@ -1,10 +1,11 @@
+use std::ffi::CStr;
+use std::ffi::CString;
+use std::os::raw::c_char;
+
 use convert_err;
 use SmartHandle;
 use speech_api::*;
 use SpxError;
-use std::ffi::CStr;
-use std::ffi::CString;
-use std::os::raw::c_char;
 
 const NULL_C_STR_PTR: *const c_char = 0 as *const c_char;
 
