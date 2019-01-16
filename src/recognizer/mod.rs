@@ -38,9 +38,9 @@ pub trait Recognizer: Send + Sync {
 }
 
 pub trait AsyncRecognizer<R, E, C>: Deref<Target=dyn Recognizer> {
-    fn start_continuous_recognition(&self) -> Result<AsyncHandle, SpxError>;
-    fn stop_continuous_recognition(&self) -> Result<AsyncHandle, SpxError>;
-    fn recognize_once_async(&self) -> Result<AsyncResultHandle<R>, SpxError>;
+    fn start_continuous_recognition(&mut self) -> Result<AsyncHandle, SpxError>;
+    fn stop_continuous_recognition(&mut self) -> Result<AsyncHandle, SpxError>;
+    fn recognize_once_async(&mut self) -> Result<AsyncResultHandle<R>, SpxError>;
 
     fn set_recognizing_channel(&mut self, v: Option<Box<Sender<E>>>);
     fn set_recognized_channel(&mut self, v: Option<Box<Sender<E>>>);
@@ -131,7 +131,7 @@ struct AbstractAsyncRecognizer<E, C> {
 
 impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
     where E: EventFactory, C: EventFactory {
-    fn start_continuous_recognition(&self) -> Result<AsyncHandle, SpxError> {
+    fn start_continuous_recognition(&mut self) -> Result<AsyncHandle, SpxError> {
         self.set_callback(&self.canceled_sender, recognizer_canceled_set_callback)?;
         self.set_callback(&self.session_started_sender, recognizer_session_started_set_callback)?;
         self.set_callback(&self.session_stopped_sender, recognizer_session_stopped_set_callback)?;
@@ -144,7 +144,7 @@ impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
         )
     }
 
-    fn stop_continuous_recognition(&self) -> Result<AsyncHandle, SpxError> {
+    fn stop_continuous_recognition(&mut self) -> Result<AsyncHandle, SpxError> {
         AsyncHandle::create(
             self.get_handle(),
             recognizer_stop_continuous_recognition_async,
@@ -152,7 +152,7 @@ impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
         )
     }
 
-    fn recognize_once_async(&self) -> Result<AsyncResultHandle<R>, SpxError> {
+    fn recognize_once_async(&mut self) -> Result<AsyncResultHandle<R>, SpxError> {
         AsyncResultHandle::create(
             self.get_handle(),
             recognizer_recognize_once_async,
