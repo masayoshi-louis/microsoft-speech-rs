@@ -13,7 +13,7 @@ use SpxError;
 use SPXHANDLE_INVALID;
 
 pub trait AudioStreamSink: Send {
-    fn write(&mut self, buf: &[u8]) -> Result<(), SpxError>;
+    fn write(&mut self, buf: impl AsRef<[u8]>) -> Result<(), SpxError>;
 
     fn close(&mut self) -> Result<(), SpxError>;
 }
@@ -115,10 +115,11 @@ pub struct PushAudioInputStreamSink {
 }
 
 impl AudioStreamSink for PushAudioInputStreamSink {
-    fn write(&mut self, buf: &[u8]) -> Result<(), SpxError> {
+    fn write(&mut self, buf: impl AsRef<[u8]>) -> Result<(), SpxError> {
         match self.handle.upgrade() {
             None => Ok(()),
             Some(handle) => unsafe {
+                let buf = buf.as_ref();
                 convert_err(push_audio_input_stream_write(handle.get(), buf.as_ptr(), buf.len() as u32))
             }
         }
