@@ -140,7 +140,7 @@ impl Drop for PushAudioInputStreamSink {
         if let Some(handle) = self.handle.upgrade() {
             unsafe {
                 if audio_stream_is_handle_valid(handle.get()) {
-                    self.close();
+                    push_audio_input_stream_close(handle.get());
                 }
             }
         }
