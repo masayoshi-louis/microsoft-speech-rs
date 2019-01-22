@@ -139,7 +139,7 @@ fn convert_err(hr: usize) -> Result<(), SpxError> {
 
 #[derive(Debug)]
 pub struct SmartHandle<T: Copy + Debug> {
-    internal: T,
+    inner: T,
     release_fn: unsafe extern "C" fn(T) -> SPXHR,
     name: &'static str,
 }
@@ -147,21 +147,21 @@ pub struct SmartHandle<T: Copy + Debug> {
 impl<T: Copy + Debug> SmartHandle<T> {
     #[inline(always)]
     fn create(name: &'static str, handle: T, release_fn: unsafe extern "C" fn(T) -> SPXHR) -> SmartHandle<T> {
-        let result = SmartHandle { internal: handle, release_fn, name };
+        let result = SmartHandle { inner: handle, release_fn, name };
         debug!("Create SmartHandle {}.", result);
         return result;
     }
 
     #[inline(always)]
     fn get(&self) -> T {
-        self.internal
+        self.inner
     }
 }
 
 impl<T: Copy + Debug> Drop for SmartHandle<T> {
     fn drop(&mut self) {
         debug!("Drop SmartHandle {}.", self);
-        let hr = unsafe { (self.release_fn)(self.internal) };
+        let hr = unsafe { (self.release_fn)(self.inner) };
         if hr != SPX_NOERROR {
             panic!("can not release SmartHandle {}, err={}", self, hr);
         }
@@ -170,7 +170,7 @@ impl<T: Copy + Debug> Drop for SmartHandle<T> {
 
 impl<T: Copy + Debug> Display for SmartHandle<T> {
     fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        write!(f, "{}{{{:?}}}", self.name, self.internal)
+        write!(f, "{}{{{:?}}}", self.name, self.inner)
     }
 }
 
