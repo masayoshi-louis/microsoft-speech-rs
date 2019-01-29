@@ -138,7 +138,7 @@ impl AsyncWait for AsyncResultWait {
 
 pub struct AsyncResultHandle<V> {
     base: BaseAsyncHandle<AsyncResultWait>,
-    result_handle: Box<SPXRESULTHANDLE>,
+    result_handle: Option<Box<SPXRESULTHANDLE>>,
     phantom_v: PhantomData<V>,
 }
 
@@ -152,7 +152,7 @@ impl<V> AsyncResultHandle<V> {
         let async_wait = AsyncResultWait { wait_fn, result_handle_ptr: &mut *result_handle };
         Ok(AsyncResultHandle {
             base: BaseAsyncHandle::create(hreco, init_fn, async_wait, Duration::from_millis(PULL_INTERVAL_MS_2))?,
-            result_handle,
+            result_handle: Some(result_handle),
             phantom_v: PhantomData,
         })
     }
@@ -167,11 +167,11 @@ impl<V> Future for AsyncResultHandle<V>
         match self.base.poll()? {
             Async::NotReady => Ok(Async::NotReady),
             Async::Ready(_) => {
-                let mut result_handle = Box::new(SPXHANDLE_INVALID);
+                let mut result_handle = None;
                 std::mem::swap(&mut self.result_handle, &mut result_handle);
                 let smart_handle = Arc::new(SmartHandle::create(
                     "RecognitionResult",
-                    *result_handle,
+                    *result_handle.expect("result_handle is none"),
                     recognizer_result_handle_release,
                 ));
                 let v = V::from_handle(smart_handle)?;
@@ -183,9 +183,9 @@ impl<V> Future for AsyncResultHandle<V>
 
 impl<V> Drop for AsyncResultHandle<V> {
     fn drop(&mut self) {
-        if *self.result_handle != SPXHANDLE_INVALID {
+        if let Some(ref h) = self.result_handle {
             unsafe {
-                recognizer_result_handle_release(*self.result_handle);
+                recognizer_result_handle_release(**h);
             }
         }
     }
