@@ -2,10 +2,10 @@ use std::ffi::CStr;
 use std::ffi::CString;
 use std::os::raw::c_char;
 
-use convert_err;
-use SmartHandle;
-use speech_api::*;
-use SpxError;
+use crate::convert_err;
+use crate::SmartHandle;
+use crate::speech_api::*;
+use crate::SpxError;
 
 const NULL_C_STR_PTR: *const c_char = 0 as *const c_char;
 
@@ -50,7 +50,7 @@ impl PropertyBag {
     pub(crate)
     fn create(hcfg: SPXHANDLE,
               f: unsafe extern "C" fn(SPXHANDLE, *mut SPXPROPERTYBAGHANDLE) -> SPXHR) -> Result<PropertyBag, SpxError> {
-        let handle = ::spx_populate(hcfg, f)?;
+        let handle = crate::spx_populate(hcfg, f)?;
         Ok(PropertyBag {
             handle: SmartHandle::create("PropertyBag", handle, property_bag_release),
         })

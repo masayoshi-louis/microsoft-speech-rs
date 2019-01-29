@@ -7,12 +7,12 @@ use std::time::Instant;
 use futures::prelude::*;
 use tokio::timer::Interval;
 
-use convert_err;
-use FromHandle;
-use SmartHandle;
-use speech_api::*;
-use SpxError;
-use SPXHANDLE_INVALID;
+use crate::convert_err;
+use crate::FromHandle;
+use crate::SmartHandle;
+use crate::speech_api::*;
+use crate::SpxError;
+use crate::SPXHANDLE_INVALID;
 
 const PULL_INTERVAL_MS_1: u64 = 30;
 const PULL_INTERVAL_MS_2: u64 = 100;

@@ -2,6 +2,7 @@
 name = "microsoft_speech"
 version = "0.2.2"
 authors = ["luyi <luyi@newtranx.com>"]
+edition = "2018"
 
 [dependencies]
 log = "0.4.3"
