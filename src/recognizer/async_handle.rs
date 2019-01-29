@@ -184,8 +184,11 @@ impl<V> Future for AsyncResultHandle<V>
 impl<V> Drop for AsyncResultHandle<V> {
     fn drop(&mut self) {
         if let Some(ref h) = self.result_handle {
-            unsafe {
-                recognizer_result_handle_release(**h);
+            let h = **h;
+            if h != SPXHANDLE_INVALID {
+                unsafe {
+                    recognizer_result_handle_release(h);
+                }
             }
         }
     }
