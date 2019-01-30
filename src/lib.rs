@@ -131,7 +131,7 @@ pub enum CancellationReason
 
 #[inline(always)]
 fn convert_err(hr: usize) -> Result<(), SpxError> {
-    if hr != SPX_NOERROR {
+    if hr != SPX_NOERROR as usize {
         return Err(SpxError::ApiError(hr));
     }
     return Ok(());
@@ -162,7 +162,7 @@ impl<T: Copy + Debug> Drop for SmartHandle<T> {
     fn drop(&mut self) {
         debug!("Drop SmartHandle {}.", self);
         let hr = unsafe { (self.release_fn)(self.inner) };
-        if hr != SPX_NOERROR {
+        if hr != SPX_NOERROR as usize {
             panic!("can not release SmartHandle {}, err={}", self, hr);
         }
     }

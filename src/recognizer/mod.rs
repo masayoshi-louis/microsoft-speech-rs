@@ -204,35 +204,41 @@ impl<E, C> AbstractAsyncRecognizer<E, C> {
     #[inline]
     fn set_callback<T>(&self,
                        sender: &Option<Box<Sender<T>>>,
-                       f: unsafe extern "C" fn(SPXRECOHANDLE, PRECOGNITION_CALLBACK_FUNC, *const c_void) -> SPXHR) -> Result<(), SpxError>
+                       f: unsafe extern "C" fn(SPXRECOHANDLE, PRECOGNITION_CALLBACK_FUNC, *mut c_void) -> SPXHR) -> Result<(), SpxError>
         where T: EventFactory {
         if let Some(s) = sender {
             let s = s.as_ref();
-            let cb: PRECOGNITION_CALLBACK_FUNC = Some(|_, h_evt, p_sender| {
-                let sender = unsafe { &mut *(p_sender as *mut Sender<T>) };
-                let event = match T::create(h_evt) {
-                    Ok(x) => x,
-                    Err(e) => {
-                        error!("can not create event, err: {}", e);
-                        return;
-                    }
-                };
-                match sender.try_send(event) {
-                    Ok(()) => {}
-                    Err(e) => {
-                        error!("can not publish event, err: {}", e);
-                    }
-                }
-            });
+            let cb: PRECOGNITION_CALLBACK_FUNC = Some(cb_send::<T>);
             unsafe {
-                convert_err(f(self.get_handle(), cb, s as *const _ as *const c_void))?;
+                convert_err(f(self.get_handle(), cb, s as *const _ as *mut c_void))?;
             }
         } else {
             unsafe {
-                convert_err(f(self.get_handle(), None, 0 as *const c_void))?;
+                convert_err(f(self.get_handle(), None, 0 as *mut c_void))?;
             }
         }
         Ok(())
+    }
+}
+
+unsafe extern "C" fn cb_send<T: EventFactory>(
+        _hreco: SPXRECOHANDLE,
+        h_evt: SPXEVENTHANDLE,
+        p_sender: *mut ::std::os::raw::c_void,
+) {
+    let sender = &mut *(p_sender as *mut Sender<T>);
+    let event = match T::create(h_evt) {
+        Ok(x) => x,
+        Err(e) => {
+            error!("can not create event, err: {}", e);
+            return;
+        }
+    };
+    match sender.try_send(event) {
+        Ok(()) => {}
+        Err(e) => {
+            error!("can not publish event, err: {}", e);
+        }
     }
 }
 
