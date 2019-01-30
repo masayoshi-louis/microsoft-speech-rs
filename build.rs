@@ -17,7 +17,7 @@ fn main() {
     let bindings = bindgen::Builder::default()
         // The input header we would like to generate
         // bindings for.
-        .header("wrapper.h")
+        .header("c_api/wrapper.h")
         .clang_arg("-ISpeechSDK/include/c_api/")
         // Finish the builder and generate the bindings.
         .generate()
@@ -26,6 +26,6 @@ fn main() {
 
     // Write the bindings to the $OUT_DIR/bindings.rs file.
     bindings
-        .write_to_file("./src/speech_api.rs")
+        .write_to_file("c_api/bindings.rs")
         .expect("Couldn't write bindings!");
 }
