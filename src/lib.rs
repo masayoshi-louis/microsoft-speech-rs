@@ -15,10 +15,10 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 use std::os::raw::c_char;
 
-pub use config::SpeechConfig;
-pub use property::PropertyBag;
-pub use property::PropertyId;
-use speech_api::*;
+pub use crate::config::SpeechConfig;
+pub use crate::property::PropertyBag;
+pub use crate::property::PropertyId;
+use crate::speech_api::*;
 
 pub mod audio;
 pub mod recognizer;

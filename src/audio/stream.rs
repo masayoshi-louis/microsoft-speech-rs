@@ -5,12 +5,12 @@ use std::slice;
 use std::sync::Arc;
 use std::sync::Weak;
 
-use audio::AudioStreamFormat;
-use convert_err;
-use SmartHandle;
-use speech_api::*;
-use SpxError;
-use SPXHANDLE_INVALID;
+use crate::audio::AudioStreamFormat;
+use crate::convert_err;
+use crate::SmartHandle;
+use crate::speech_api::*;
+use crate::SpxError;
+use crate::SPXHANDLE_INVALID;
 
 pub trait AudioStreamSink: Send {
     fn write(&mut self, buf: impl AsMut<[u8]>) -> Result<(), SpxError>;

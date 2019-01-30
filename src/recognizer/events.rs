@@ -4,11 +4,11 @@ use std::sync::Arc;
 
 use num::FromPrimitive;
 
-use CancellationReason;
-use FromHandle;
-use SmartHandle;
-use speech_api::*;
-use SpxError;
+use crate::CancellationReason;
+use crate::FromHandle;
+use crate::SmartHandle;
+use crate::speech_api::*;
+use crate::SpxError;
 
 const SESSION_ID_SIZE: usize = 32; // UUID
 
@@ -63,7 +63,7 @@ impl EventFactory for SessionEvent {
 
 impl SessionEvent {
     pub fn session_id(&self) -> Result<String, SpxError> {
-        ::spx_populate_string(
+        crate::spx_populate_string(
             self.get_handle(),
             SESSION_ID_SIZE,
             recognizer_session_event_get_session_id,
@@ -96,7 +96,7 @@ impl EventFactory for RecognitionEvent {
 
 impl RecognitionEvent {
     pub fn offset(&self) -> Result<u64, SpxError> {
-        ::spx_populate(self.get_handle(), recognizer_recognition_event_get_offset)
+        crate::spx_populate(self.get_handle(), recognizer_recognition_event_get_offset)
     }
 }
 
@@ -130,7 +130,7 @@ impl EventFactory for BaseRecognitionResultEvent {
 impl BaseRecognitionResultEvent {
     #[inline(always)]
     fn get_result_handle(event_handle: SPXEVENTHANDLE) -> Result<Arc<SmartHandle<SPXRESULTHANDLE>>, SpxError> {
-        let handle = ::spx_populate(event_handle, recognizer_recognition_event_get_result)?;
+        let handle = crate::spx_populate(event_handle, recognizer_recognition_event_get_result)?;
         Ok(Arc::new(SmartHandle::create("RecognitionResult", handle, recognizer_result_handle_release)))
     }
 }
@@ -193,7 +193,7 @@ impl EventFactory for RecognitionCanceledEvent {
 
 impl RecognitionCanceledEvent {
     pub fn reason(&self) -> Result<CancellationReason, SpxError> {
-        let code = ::spx_populate(self.result_handle.get(), result_get_reason_canceled)?;
+        let code = crate::spx_populate(self.result_handle.get(), result_get_reason_canceled)?;
         return Ok(CancellationReason::from_u32(code).expect("unknown reason"));
     }
 }

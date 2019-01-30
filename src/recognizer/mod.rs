@@ -7,14 +7,14 @@ use std::time::Duration;
 use futures::sync::mpsc::{channel, Receiver, Sender};
 use num::FromPrimitive;
 
-use convert_err;
-use FromHandle;
-use recognizer::events::EventFactory;
-use recognizer::events::SessionEvent;
-use ResultReason;
-use SmartHandle;
-use speech_api::*;
-use SpxError;
+use crate::convert_err;
+use crate::FromHandle;
+use crate::recognizer::events::EventFactory;
+use crate::recognizer::events::SessionEvent;
+use crate::ResultReason;
+use crate::SmartHandle;
+use crate::speech_api::*;
+use crate::SpxError;
 
 pub use self::async_handle::AsyncHandle;
 pub use self::async_handle::AsyncResultHandle;
@@ -267,7 +267,7 @@ impl RecognitionResult {
     }
 
     pub fn reason(&self) -> Result<ResultReason, SpxError> {
-        let code = ::spx_populate(self.get_handle(), result_get_reason)?;
+        let code = crate::spx_populate(self.get_handle(), result_get_reason)?;
         return Ok(ResultReason::from_u32(code).expect("unknown reason"));
     }
 
@@ -282,13 +282,13 @@ impl RecognitionResult {
     #[inline(always)]
     fn populate_string(&self, max_chars: usize,
                        f: unsafe extern "C" fn(SPXRESULTHANDLE, *mut c_char, u32) -> SPXHR) -> Result<String, SpxError> {
-        ::spx_populate_string(self.get_handle(), max_chars, f)
+        crate::spx_populate_string(self.get_handle(), max_chars, f)
     }
 
     #[inline(always)]
     fn populate<T>(&self,
                    f: unsafe extern "C" fn(SPXRESULTHANDLE, *mut T) -> SPXHR) -> Result<T, SpxError> {
-        ::spx_populate(self.get_handle(), f)
+        crate::spx_populate(self.get_handle(), f)
     }
 }
 
