@@ -208,9 +208,8 @@ impl<E, C> AbstractAsyncRecognizer<E, C> {
         where T: EventFactory {
         if let Some(s) = sender {
             let s = s.as_ref();
-            let cb: PRECOGNITION_CALLBACK_FUNC = Some(cb_send::<T>);
             unsafe {
-                convert_err(f(self.get_handle(), cb, s as *const _ as *mut c_void))?;
+                convert_err(f(self.get_handle(), Some(Self::cb_send::<T>), s as *const _ as *mut c_void))?;
             }
         } else {
             unsafe {
@@ -219,25 +218,25 @@ impl<E, C> AbstractAsyncRecognizer<E, C> {
         }
         Ok(())
     }
-}
 
-unsafe extern "C" fn cb_send<T: EventFactory>(
+    unsafe extern "C" fn cb_send<T: EventFactory>(
         _hreco: SPXRECOHANDLE,
         h_evt: SPXEVENTHANDLE,
         p_sender: *mut ::std::os::raw::c_void,
-) {
-    let sender = &mut *(p_sender as *mut Sender<T>);
-    let event = match T::create(h_evt) {
-        Ok(x) => x,
-        Err(e) => {
-            error!("can not create event, err: {}", e);
-            return;
-        }
-    };
-    match sender.try_send(event) {
-        Ok(()) => {}
-        Err(e) => {
-            error!("can not publish event, err: {}", e);
+    ) {
+        let sender = &mut *(p_sender as *mut Sender<T>);
+        let event = match T::create(h_evt) {
+            Ok(x) => x,
+            Err(e) => {
+                error!("can not create event, err: {}", e);
+                return;
+            }
+        };
+        match sender.try_send(event) {
+            Ok(()) => {}
+            Err(e) => {
+                error!("can not publish event, err: {}", e);
+            }
         }
     }
 }
