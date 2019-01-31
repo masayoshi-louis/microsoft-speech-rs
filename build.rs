@@ -1,15 +1,20 @@
 // build.rs
-extern crate bindgen;
-
-use std::env;
-use std::path::PathBuf;
-use std::process::Command;
+use bindgen;
+use std::{env, fs, path::{Path, PathBuf}};
 
 fn main() {
-    // Tell cargo to tell rustc to link the system bzip2
-    // shared library.
-    println!("cargo:rustc-link-search=SpeechSDK/lib/x64");
-    println!("cargo:rustc-link-lib=Microsoft.CognitiveServices.Speech.core");
+    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    fs::copy(
+        "./SpeechSDK/lib/x64/libMicrosoft.CognitiveServices.Speech.core.so",
+        Path::new(&out_path).join(
+            "libMicrosoft.CognitiveServices.Speech.core.so"
+        )
+    ).unwrap();
+
+    println!("cargo:rustc-link-search=native={}", out_path.display());
+    println!(
+        "cargo:rustc-link-lib=dylib=Microsoft.CognitiveServices.Speech.core"
+    );
 
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
