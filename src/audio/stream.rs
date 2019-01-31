@@ -13,7 +13,7 @@ use crate::SpxError;
 use crate::SPXHANDLE_INVALID;
 
 pub trait AudioStreamSink: Send {
-    fn write(&mut self, buf: impl AsMut<[u8]>) -> Result<(), SpxError>;
+    fn write(&mut self, buf: impl AsRef<[u8]>) -> Result<(), SpxError>;
 
     fn close(&mut self) -> Result<(), SpxError>;
 }
@@ -115,12 +115,13 @@ pub struct PushAudioInputStreamSink {
 }
 
 impl AudioStreamSink for PushAudioInputStreamSink {
-    fn write(&mut self, mut buf: impl AsMut<[u8]>) -> Result<(), SpxError> {
+    fn write(&mut self, buf: impl AsRef<[u8]>) -> Result<(), SpxError> {
         match self.handle.upgrade() {
             None => Err(SpxError::StreamDropped),
             Some(handle) => unsafe {
-                let buf = buf.as_mut();
-                convert_err(push_audio_input_stream_write(handle.get(), buf.as_mut_ptr(), buf.len() as u32))
+                let buf = buf.as_ref();
+                let ptr = buf.as_ptr() as *mut u8;
+                convert_err(push_audio_input_stream_write(handle.get(), ptr, buf.len() as u32))
             }
         }
     }
@@ -193,7 +194,7 @@ extern "C" fn cb_read<CB: PullAudioInputStreamCallback + 'static>(
 
 extern "C" fn cb_close<CB: PullAudioInputStreamCallback + 'static>(pv_ctx: *mut ::std::os::raw::c_void) {
     let cb = unsafe { &mut *(pv_ctx as *mut CB) };
-    cb.close();    
+    cb.close();
 }
 
 impl<CB> Deref for PullAudioInputStream<CB> {
