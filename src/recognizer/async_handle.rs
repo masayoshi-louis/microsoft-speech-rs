@@ -14,8 +14,8 @@ use crate::speech_api::*;
 use crate::SpxError;
 use crate::SPXHANDLE_INVALID;
 
-const PULL_INTERVAL_MS_1: u64 = 30;
-const PULL_INTERVAL_MS_2: u64 = 100;
+const ACTION_POLL_INTERVAL_MS: u64 = 30;
+const RESULT_POLL_INTERVAL_MS: u64 = 100;
 
 const SPXERR_TIMEOUT: SPXHR = 0x06;
 
@@ -110,7 +110,7 @@ impl AsyncHandle {
                 hreco,
                 init_fn,
                 AsyncWaitFn { wait_fn },
-                Duration::from_millis(PULL_INTERVAL_MS_1),
+                Duration::from_millis(ACTION_POLL_INTERVAL_MS),
             )?
         })
     }
@@ -151,7 +151,7 @@ impl<V> AsyncResultHandle<V> {
         let mut result_handle = Box::new(SPXHANDLE_INVALID);
         let async_wait = AsyncResultWait { wait_fn, result_handle_ptr: &mut *result_handle };
         Ok(AsyncResultHandle {
-            base: BaseAsyncHandle::create(hreco, init_fn, async_wait, Duration::from_millis(PULL_INTERVAL_MS_2))?,
+            base: BaseAsyncHandle::create(hreco, init_fn, async_wait, Duration::from_millis(RESULT_POLL_INTERVAL_MS))?,
             result_handle: Some(result_handle),
             phantom_v: PhantomData,
         })
