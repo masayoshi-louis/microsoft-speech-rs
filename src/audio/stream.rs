@@ -170,31 +170,33 @@ impl<CB> PullAudioInputStream<CB> where CB: PullAudioInputStreamCallback + 'stat
             callback: Box::new(callback),
         };
 
-        let read_cb: CUSTOM_AUDIO_PULL_STREAM_READ_CALLBACK = Some(cb_read::<CB>);
-        let close_cb: CUSTOM_AUDIO_PULL_STREAM_CLOSE_CALLBACK = Some(cb_close::<CB>);
-
         unsafe {
             let cb_ptr = &mut *result.callback as *mut _ as *mut c_void;
-            convert_err(pull_audio_input_stream_set_callbacks(result.get_handle(), cb_ptr, read_cb, close_cb))?;
+            convert_err(pull_audio_input_stream_set_callbacks(
+                result.get_handle(),
+                cb_ptr,
+                Some(Self::cb_read),
+                Some(Self::cb_close),
+            ))?;
         }
 
         Ok(result)
     }
-}
 
-extern "C" fn cb_read<CB: PullAudioInputStreamCallback + 'static>(
-    pv_ctx: *mut ::std::os::raw::c_void,
-    buff: *mut u8,
-    size: u32,
-) -> ::std::os::raw::c_int {
-    let cb = unsafe { &mut *(pv_ctx as *mut CB) };
-    let buff = unsafe { slice::from_raw_parts_mut(buff, size as usize) };
-    cb.read(buff) as i32
-}
+    extern "C" fn cb_read(
+        pv_ctx: *mut ::std::os::raw::c_void,
+        buff: *mut u8,
+        size: u32,
+    ) -> ::std::os::raw::c_int {
+        let cb = unsafe { &mut *(pv_ctx as *mut CB) };
+        let buff = unsafe { slice::from_raw_parts_mut(buff, size as usize) };
+        cb.read(buff) as i32
+    }
 
-extern "C" fn cb_close<CB: PullAudioInputStreamCallback + 'static>(pv_ctx: *mut ::std::os::raw::c_void) {
-    let cb = unsafe { &mut *(pv_ctx as *mut CB) };
-    cb.close();
+    extern "C" fn cb_close(pv_ctx: *mut ::std::os::raw::c_void) {
+        let cb = unsafe { &mut *(pv_ctx as *mut CB) };
+        cb.close();
+    }
 }
 
 impl<CB> Deref for PullAudioInputStream<CB> {
