@@ -167,8 +167,8 @@ impl<V> Future for AsyncResultHandle<V>
         match self.base.poll()? {
             Async::NotReady => Ok(Async::NotReady),
             Async::Ready(_) => {
-                let mut result_handle = None;
-                std::mem::swap(&mut self.result_handle, &mut result_handle);
+                let result_handle =
+                    std::mem::replace(&mut self.result_handle, None);
                 let smart_handle = Arc::new(SmartHandle::create(
                     "RecognitionResult",
                     *result_handle.expect("result_handle is none"),
