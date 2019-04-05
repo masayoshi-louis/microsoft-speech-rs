@@ -365,7 +365,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "microsoft_speech"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "bindgen 0.47.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "enum_primitive 0.1.1 (registry+https://github.com/rust-lang/crates.io-index)",
