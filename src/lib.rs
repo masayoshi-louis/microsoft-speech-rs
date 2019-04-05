@@ -248,7 +248,7 @@ fn spx_populate_string(handle: SPXHANDLE, max_chars: usize,
 fn spx_populate<T>(handle: SPXHANDLE,
                    f: unsafe extern "C" fn(SPXHANDLE, *mut T) -> SPXHR) -> Result<T, SpxError> {
     unsafe {
-        let mut result: T = std::mem::MaybeUninit::uninitialized();
+        let mut result: T = std::mem::uninitialized();
         convert_err(f(handle, &mut result))?;
         return Ok(result);
     }
