@@ -124,8 +124,25 @@ enum_from_primitive! {
 #[derive(Debug, PartialEq)]
 pub enum CancellationReason
 {
-    CancellationReasonError = 1,
-    CancellationReasonEndOfStream = 2,
+    Error = 1,
+    EndOfStream = 2,
+}
+}
+
+enum_from_primitive! {
+#[derive(Debug, PartialEq)]
+pub enum CancellationErrorCode
+{
+    NoError = 0,
+    AuthenticationFailure = 1,
+    BadRequest = 2,
+    TooManyRequests = 3,
+    Forbidden = 4,
+    ConnectionFailure = 5,
+    ServiceTimeout = 6,
+    ServiceError = 7,
+    ServiceUnavailable = 8,
+    RuntimeError = 9
 }
 }
 

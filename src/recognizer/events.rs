@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use num::FromPrimitive;
 
+use crate::CancellationErrorCode;
 use crate::CancellationReason;
 use crate::FromHandle;
 use crate::SmartHandle;
@@ -195,5 +196,10 @@ impl RecognitionCanceledEvent {
     pub fn reason(&self) -> Result<CancellationReason, SpxError> {
         let code = crate::spx_populate(self.result_handle.get(), result_get_reason_canceled)?;
         return Ok(CancellationReason::from_u32(code).expect("unknown reason"));
+    }
+
+    pub fn err_code(&self) -> Result<CancellationErrorCode, SpxError> {
+        let code = crate::spx_populate(self.result_handle.get(), result_get_canceled_error_code)?;
+        return Ok(CancellationErrorCode::from_u32(code).expect("unknown code"));
     }
 }
