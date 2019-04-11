@@ -214,7 +214,7 @@ typedef uintptr_t SPXHR;
 #define SPXERR_SWITCH_MODE_NOT_ALLOWED  __SPX_ERRCODE_FAILED(0x01E)
 
 /// <summary>
-/// Changing connection status is not supported in the current recognitzion state.
+/// Changing connection status is not supported in the current recognition state.
 /// </summary>
 #define SPXERR_CHANGE_CONNECTION_STATUS_NOT_ALLOWED __SPX_ERRCODE_FAILED(0x01F)
 
@@ -232,3 +232,45 @@ typedef uintptr_t SPXHR;
 /// The recognizer is invalid.
 /// </summary>
 #define SPXERR_INVALID_RECOGNIZER  __SPX_ERRCODE_FAILED(0x022)
+
+/// <summary>
+/// The value is out of range.
+/// Added in version 1.3.0.
+/// </summary>
+#define SPXERR_OUT_OF_RANGE  __SPX_ERRCODE_FAILED(0x023)
+
+/// <summary>
+/// Extension library not found.
+/// Added in version 1.3.0.
+/// </summary>
+#define SPXERR_EXTENSION_LIBRARY_NOT_FOUND    __SPX_ERRCODE_FAILED(0x024)
+
+/// <summary>
+/// An unexpected error was encountered when trying to access the TTS engine site.
+/// Added in version 1.4.0.
+/// </summary>
+#define SPXERR_UNEXPECTED_TTS_ENGINE_SITE_FAILURE  __SPX_ERRCODE_FAILED(0x025)
+
+/// <summary>
+/// An unexpected error was encountered when trying to access the audio output stream.
+/// Added in version 1.4.0.
+/// </summary>
+#define SPXERR_UNEXPECTED_AUDIO_OUTPUT_FAILURE  __SPX_ERRCODE_FAILED(0x026)
+
+/// <summary>
+/// Gstreamer internal error.
+/// Added in version 1.4.0.
+/// </summary>
+#define SPXERR_GSTREAMER_INTERNAL_ERROR    __SPX_ERRCODE_FAILED(0x027)
+
+/// <summary>
+/// Compressed contrainer format not supported.
+/// Added in version 1.4.0.
+/// </summary>
+#define SPXERR_CONTAINER_FORMAT_NOT_SUPPORTED_ERROR    __SPX_ERRCODE_FAILED(0x028)
+
+/// <summary>
+/// Codec extension or gstreamer not found.
+/// Added in version 1.4.0.
+/// </summary>
+#define SPXERR_GSTREAMER_NOT_FOUND_ERROR    __SPX_ERRCODE_FAILED(0x029)

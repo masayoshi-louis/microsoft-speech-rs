@@ -51,7 +51,7 @@ public:
     /// <summary>
     /// Asynchronously initiates keyword recognition operation.
     /// </summary>
-    /// Note: Key word spotting functionality is only available on the Cognitive Services Device SDK.This functionality is currently not included in the SDK itself.
+    /// Note: Keyword spotting functionality is only available on the Cognitive Services Device SDK. This functionality is currently not included in the SDK itself.
     /// <param name="model">The keyword recognition model that specifies the keyword to be recognized.</param>
     /// <returns>An asynchronous operation that starts the keyword recognition.</returns>
     virtual std::future<void> StartKeywordRecognitionAsync(std::shared_ptr<KeywordRecognitionModel> model) = 0;
@@ -59,6 +59,7 @@ public:
     /// <summary>
     /// Asynchronously terminates ongoing keyword recognition operation.
     /// </summary>
+    /// Note: Keyword spotting functionality is only available on the Cognitive Services Device SDK. This functionality is currently not included in the SDK itself.
     /// <returns>An empty future.</returns>
     virtual std::future<void> StopKeywordRecognitionAsync() = 0;
 
@@ -205,7 +206,7 @@ protected:
             SPX_EXITFN_CLEANUP:
             auto releaseHr = recognizer_async_handle_release(m_hasyncStopContinuous);
             SPX_REPORT_ON_FAIL(releaseHr);
-            m_hasyncStartContinuous = SPXHANDLE_INVALID;
+            m_hasyncStopContinuous = SPXHANDLE_INVALID;
 
             SPX_THROW_ON_FAIL(hr);
         });

@@ -70,10 +70,12 @@ public:
     }
 
     /// <summary>
-    /// Performs speech recognition in a non-blocking (asynchronous) mode.
-    /// Note: RecognizeOnceAsync() returns when the first utterance has been recognized,
-    /// so it is suitable only for single shot recognition like command or query.
-    /// For long-running recognition, use StartContinuousRecognitionAsync() instead.
+    /// Starts speech recognition, and returns after a single utterance is recognized. The end of a
+    /// single utterance is determined by listening for silence at the end or until a maximum of 15
+    /// seconds of audio is processed.  The task returns the recognition text as result. 
+    /// Note: Since RecognizeOnceAsync() returns only a single utterance, it is suitable only for single
+    /// shot recognition like command or query. 
+    /// For long-running multi-utterance recognition, use StartContinuousRecognitionAsync() instead.
     /// </summary>
     /// <returns>Future containing result value (a shared pointer to IntentRecognitionResult)
     /// of the asynchronous speech recognition.
@@ -104,7 +106,7 @@ public:
     /// <summary>
     /// Asynchronously initiates keyword recognition operation.
     /// </summary>
-    /// Note: Key word spotting functionality is only available on the Cognitive Services Device SDK.This functionality is currently not included in the SDK itself.
+    /// Note: Keyword spotting functionality is only available on the Cognitive Services Device SDK. This functionality is currently not included in the SDK itself.
     /// <param name="model">Specifies the keyword model to be used.</param>
     /// <returns>An empty future.</returns>
     std::future<void> StartKeywordRecognitionAsync(std::shared_ptr<KeywordRecognitionModel> model) override
@@ -115,7 +117,7 @@ public:
     /// <summary>
     /// Asynchronously terminates keyword recognition operation.
     /// </summary>
-    /// Note: Key word spotting functionality is only available on the Cognitive Services Device SDK.This functionality is currently not included in the SDK itself.
+    /// Note: Keyword spotting functionality is only available on the Cognitive Services Device SDK. This functionality is currently not included in the SDK itself.
     /// <returns>An empty future.</returns>
     std::future<void> StopKeywordRecognitionAsync() override
     {
@@ -137,7 +139,10 @@ public:
     }
 
     /// <summary>
-    /// Sets the authorization token that will be used for connecting the server.
+    /// Sets the authorization token that will be used for connecting to the service.
+    /// Note: The caller needs to ensure that the authorization token is valid. Before the authorization token
+    /// expires, the caller needs to refresh it by calling this setter with a new valid token.
+    /// Otherwise, the recognizer will encounter errors during recognition.
     /// </summary>
     /// <param name="token">The authorization token.</param>
     void SetAuthorizationToken(const SPXSTRING& token)

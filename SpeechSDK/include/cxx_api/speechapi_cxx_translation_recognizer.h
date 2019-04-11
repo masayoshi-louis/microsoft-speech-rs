@@ -78,11 +78,12 @@ public:
     }
 
     /// <summary>
-    /// Starts translation recognition as an asynchronous operation, and stops after the first utterance is recognized.
-    /// The asynchronous operation returns <see cref="TranslationRecognitionResult"/> as result.
-    /// Note: RecognizeOnceAsync() returns when the first utterance has been recognized, 
-    /// so it is suitable only for single shot recognition like command or query.
-    /// For long-running recognition, use StartContinuousRecognitionAsync() instead.
+    /// Starts translation recognition, and returns after a single utterance is recognized. The end of a
+    /// single utterance is determined by listening for silence at the end or until a maximum of 15
+    /// seconds of audio is processed.  The task returns the recognized text as well as the translation.
+    /// Note: Since RecognizeOnceAsync() returns only a single utterance, it is suitable only for single
+    /// shot recognition like command or query.
+    /// For long-running multi-utterance recognition, use StartContinuousRecognitionAsync() instead.
     /// </summary>
     /// <returns>An asynchronous operation representing the recognition. It returns a value of <see cref="TranslationRecognitionResult"/> as result.</returns>
     std::future<std::shared_ptr<TranslationRecognitionResult>> RecognizeOnceAsync() override
@@ -107,37 +108,31 @@ public:
     std::future<void> StopContinuousRecognitionAsync() override { return BaseType::StopContinuousRecognitionAsyncInternal(); }
 
     /// <summary>
-    /// Note: NOT implemented. Starts keyword recognition on a continuous audio stream, until StopKeywordRecognitionAsync() is called.
+    /// Starts keyword recognition on a continuous audio stream, until StopKeywordRecognitionAsync() is called.
     /// </summary>
-    /// Note: Key word spotting functionality is only available on the Cognitive Services Device SDK.This functionality is currently not included in the SDK itself.
+    /// Note: Keyword spotting functionality is only available on the Cognitive Services Device SDK. This functionality is currently not included in the SDK itself.
     /// <param name="model">Specifies the keyword model to be used.</param>
     /// <returns>An asynchronous operation that starts the keyword recognition.</returns>
     std::future<void> StartKeywordRecognitionAsync(std::shared_ptr<KeywordRecognitionModel> model) override
     {
-        UNUSED(model);
-        auto future = std::async(std::launch::async, [=]() -> void {
-            SPX_THROW_ON_FAIL(SPXERR_NOT_IMPL);
-        });
-
-        return future;
+        return BaseType::StartKeywordRecognitionAsyncInternal(model);
     };
 
     /// <summary>
-    /// Note: NOT implemented. Stops continuous keyword recognition.
+    /// Stops continuous keyword recognition.
     /// </summary>
-    /// Note: Key word spotting functionality is only available on the Cognitive Services Device SDK.This functionality is currently not included in the SDK itself.
+    /// Note: Keyword spotting functionality is only available on the Cognitive Services Device SDK. This functionality is currently not included in the SDK itself.
     /// <returns>A task representing the asynchronous operation that stops the keyword recognition.</returns>
     std::future<void> StopKeywordRecognitionAsync() override
     {
-        auto future = std::async(std::launch::async, [=]() -> void {
-            SPX_THROW_ON_FAIL(SPXERR_NOT_IMPL);
-        });
-
-        return future;
+        return BaseType::StopKeywordRecognitionAsyncInternal();
     };
 
     /// <summary>
-    /// Sets the authorization token that will be used for connecting the service.
+    /// Sets the authorization token that will be used for connecting to the service.
+    /// Note: The caller needs to ensure that the authorization token is valid. Before the authorization token
+    /// expires, the caller needs to refresh it by calling this setter with a new valid token.
+    /// Otherwise, the recognizer will encounter errors during recognition.
     /// </summary>
     /// <param name="token">A string that represents the endpoint id.</param>
     void SetAuthorizationToken(const SPXSTRING& token)
