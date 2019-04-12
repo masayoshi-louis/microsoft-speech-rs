@@ -7,7 +7,7 @@ use std::time::Duration;
 use futures::sync::mpsc::{channel, Receiver, Sender};
 use num::FromPrimitive;
 
-use crate::convert_err;
+use crate::{AsyncHandle, AsyncResultHandle, convert_err};
 use crate::FromHandle;
 use crate::recognizer::events::EventFactory;
 use crate::recognizer::events::SessionEvent;
@@ -16,11 +16,8 @@ use crate::SmartHandle;
 use crate::speech_api::*;
 use crate::SpxError;
 
-pub use self::async_handle::AsyncHandle;
-pub use self::async_handle::AsyncResultHandle;
 pub use self::speech::*;
 
-mod async_handle;
 pub mod events;
 mod speech;
 
