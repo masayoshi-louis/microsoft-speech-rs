@@ -1,12 +1,15 @@
+use std::{env, thread::sleep, time::Duration};
+
 use env_logger;
+use futures::future::{Future, IntoFuture};
 use futures::Stream;
-use log::{debug, info};
+use log::{debug, error, info};
+
 use microsoft_speech::{
     audio::AudioConfig,
-    recognizer::{events::RecognitionResultEvent, RecognitionResult, SpeechRecognizer},
-    PropertyId, SpeechConfig,
+    PropertyId,
+    recognizer::{events::RecognitionResultEvent, RecognitionResult, SpeechRecognizer}, SpeechConfig,
 };
-use std::{env, time::Duration, thread::sleep};
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -27,10 +30,17 @@ fn main() {
         print_event(x);
         Ok(())
     });
-    recognizer.start_continuous_recognition().unwrap();
+    let f_start = recognizer.start_continuous_recognition()
+        .into_future()
+        .flatten()
+        .map_err(|e| {
+            error!("start continuous recognition failed: {:?}", e);
+            ::std::process::exit(1);
+        });
 
     let mut r = tokio::runtime::Runtime::new().unwrap();
 
+    r.spawn(f_start);
     r.block_on(f1).unwrap();
     sleep(Duration::from_secs(100));
     info!("done");
