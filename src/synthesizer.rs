@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::ffi::CString;
 use std::sync::Arc;
 
@@ -18,14 +19,14 @@ pub struct SpeechSynthesizer {
 }
 
 impl SpeechSynthesizer {
-    pub fn from_config(config: impl AsRef<SpeechConfig>) -> Result<SpeechSynthesizer, SpxError> {
+    pub fn from_config(config: impl Borrow<SpeechConfig>) -> Result<SpeechSynthesizer, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
         let audio_config = AudioConfig::output_from_default_speaker()?;
         unsafe {
             convert_err(
                 synthesizer_create_speech_synthesizer_from_config(
                     &mut handle,
-                    config.as_ref().get_handle(),
+                    config.borrow().get_handle(),
                     audio_config.get_handle(),
                 )
             )?;
