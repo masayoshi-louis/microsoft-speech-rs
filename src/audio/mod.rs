@@ -52,6 +52,17 @@ impl AudioConfig {
         Ok(result)
     }
 
+    pub fn output_from_default_speaker() -> Result<AudioConfig, SpxError> {
+        let mut handle = SPXHANDLE_INVALID;
+        unsafe {
+            convert_err(audio_config_create_audio_output_from_default_speaker(&mut handle))?;
+        }
+        Ok(AudioConfig {
+            handle: SmartHandle::create("AudioConfig", handle, audio_config_release),
+            stream: None,
+        })
+    }
+
     #[inline]
     pub fn get_handle(&self) -> SPXAUDIOCONFIGHANDLE {
         self.handle.get()
