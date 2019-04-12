@@ -8,8 +8,21 @@ fn main() {
         "./SpeechSDK/lib/x64/libMicrosoft.CognitiveServices.Speech.core.so",
         Path::new(&out_path).join(
             "libMicrosoft.CognitiveServices.Speech.core.so"
-        )
+        ),
     ).unwrap();
+    fs::copy(
+        "./SpeechSDK/lib/x64/libMicrosoft.CognitiveServices.Speech.extension.kws.so",
+        Path::new(&out_path).join(
+            "libMicrosoft.CognitiveServices.Speech.extension.kws.so"
+        ),
+    ).unwrap();
+    fs::copy(
+        "./SpeechSDK/lib/x64/libMicrosoft.CognitiveServices.Speech.extension.codec.so",
+        Path::new(&out_path).join(
+            "libMicrosoft.CognitiveServices.Speech.extension.codec.so"
+        ),
+    ).unwrap();
+
 
     println!("cargo:rustc-link-search=native={}", out_path.display());
     println!(
