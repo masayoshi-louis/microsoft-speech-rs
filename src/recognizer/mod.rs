@@ -158,7 +158,6 @@ impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
             recognizer_async_handle_release,
             recognizer_recognize_once_async_wait_for,
             recognizer_result_handle_release,
-            "RecognitionResult",
         )
     }
 
@@ -293,12 +292,19 @@ impl RecognitionResult {
     }
 }
 
-impl FromHandle for RecognitionResult {
-    type Handle = Arc<SmartHandle<SPXRESULTHANDLE>>;
-    type Err = SpxError;
-
+impl FromHandle<Arc<SmartHandle<SPXRESULTHANDLE>>, SpxError> for RecognitionResult {
     fn from_handle(handle: Arc<SmartHandle<SPXRESULTHANDLE>>) -> Result<RecognitionResult, SpxError> {
         RecognitionResult::create(handle)
+    }
+}
+
+impl FromHandle<SPXRESULTHANDLE, SpxError> for RecognitionResult {
+    fn from_handle(handle: SPXRESULTHANDLE) -> Result<RecognitionResult, SpxError> {
+        RecognitionResult::create(Arc::new(SmartHandle::create(
+            "RecognitionResult",
+            handle,
+            recognizer_result_handle_release,
+        )))
     }
 }
 

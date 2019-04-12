@@ -162,7 +162,7 @@ impl<R> EventFactory for RecognitionResultEvent<R> {
 }
 
 impl<R> RecognitionResultEvent<R>
-    where R: FromHandle<Handle=Arc<SmartHandle<SPXRESULTHANDLE>>, Err=SpxError> {
+    where R: FromHandle<Arc<SmartHandle<SPXRESULTHANDLE>>, SpxError> {
     pub fn result(&self) -> Result<R, SpxError> {
         R::from_handle(self.result_handle.clone())
     }
