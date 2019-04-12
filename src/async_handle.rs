@@ -35,6 +35,7 @@ impl AsyncWait for AsyncWaitFn {
 
 pub struct BaseAsyncHandle<W> {
     handle: Option<SmartHandle<SPXASYNCHANDLE>>,
+    release_fn: unsafe extern "C" fn(SPXASYNCHANDLE) -> SPXHR,
     timer: Interval,
     async_wait: W,
     // for lazy initialization
@@ -50,10 +51,12 @@ impl<W: AsyncWait> BaseAsyncHandle<W> {
     pub(crate)
     fn create(init_handle: SPXRECOHANDLE,
               init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
+              release_fn: unsafe extern "C" fn(SPXASYNCHANDLE) -> SPXHR,
               async_wait: W,
               poll_interval: Duration) -> Result<BaseAsyncHandle<W>, SpxError> {
         Ok(BaseAsyncHandle {
             handle: None,
+            release_fn,
             timer: Interval::new(Instant::now(), poll_interval),
             async_wait,
             init_handle,
@@ -75,7 +78,7 @@ impl<W: AsyncWait> Future for BaseAsyncHandle<W> {
             self.handle = Some(SmartHandle::create(
                 "BaseAsyncHandle",
                 handle,
-                recognizer_async_handle_release,
+                self.release_fn,
             ));
         }
         match self.timer.poll().expect("timer failure") {
@@ -104,11 +107,13 @@ impl AsyncHandle {
     pub(crate)
     fn create(init_handle: SPXRECOHANDLE,
               init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
+              release_fn: unsafe extern "C" fn(SPXASYNCHANDLE) -> SPXHR,
               wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32) -> SPXHR) -> Result<AsyncHandle, SpxError> {
         Ok(AsyncHandle {
             base: BaseAsyncHandle::create(
                 init_handle,
                 init_fn,
+                release_fn,
                 AsyncWaitFn { wait_fn },
                 Duration::from_millis(ACTION_POLL_INTERVAL_MS),
             )?
@@ -139,6 +144,7 @@ impl AsyncWait for AsyncResultWait {
 pub struct AsyncResultHandle<V> {
     base: BaseAsyncHandle<AsyncResultWait>,
     result_handle: Option<Box<SPXRESULTHANDLE>>,
+    result_release_fn: unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR,
     phantom_v: PhantomData<V>,
 }
 
@@ -147,12 +153,21 @@ impl<V> AsyncResultHandle<V> {
     pub(crate)
     fn create(init_handle: SPXRECOHANDLE,
               init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
-              wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32, *mut SPXRESULTHANDLE) -> SPXHR) -> Result<AsyncResultHandle<V>, SpxError> {
+              release_fn: unsafe extern "C" fn(SPXASYNCHANDLE) -> SPXHR,
+              wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32, *mut SPXRESULTHANDLE) -> SPXHR,
+              result_release_fn: unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR) -> Result<AsyncResultHandle<V>, SpxError> {
         let mut result_handle = Box::new(SPXHANDLE_INVALID);
         let async_wait = AsyncResultWait { wait_fn, result_handle_ptr: &mut *result_handle };
         Ok(AsyncResultHandle {
-            base: BaseAsyncHandle::create(init_handle, init_fn, async_wait, Duration::from_millis(RESULT_POLL_INTERVAL_MS))?,
+            base: BaseAsyncHandle::create(
+                init_handle,
+                init_fn,
+                release_fn,
+                async_wait,
+                Duration::from_millis(RESULT_POLL_INTERVAL_MS),
+            )?,
             result_handle: Some(result_handle),
+            result_release_fn,
             phantom_v: PhantomData,
         })
     }
@@ -172,7 +187,7 @@ impl<V> Future for AsyncResultHandle<V>
                 let smart_handle = Arc::new(SmartHandle::create(
                     "RecognitionResult",
                     *result_handle.expect("result_handle is none"),
-                    recognizer_result_handle_release,
+                    self.result_release_fn,
                 ));
                 let v = V::from_handle(smart_handle)?;
                 Ok(Async::Ready(v))
@@ -187,7 +202,7 @@ impl<V> Drop for AsyncResultHandle<V> {
             let h = **h;
             if h != SPXHANDLE_INVALID {
                 unsafe {
-                    recognizer_result_handle_release(h);
+                    (self.result_release_fn)(h);
                 }
             }
         }

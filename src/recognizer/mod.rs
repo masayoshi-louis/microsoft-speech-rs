@@ -137,6 +137,7 @@ impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
         AsyncHandle::create(
             self.get_handle(),
             recognizer_start_continuous_recognition_async,
+            recognizer_async_handle_release,
             recognizer_start_continuous_recognition_async_wait_for,
         )
     }
@@ -145,6 +146,7 @@ impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
         AsyncHandle::create(
             self.get_handle(),
             recognizer_stop_continuous_recognition_async,
+            recognizer_async_handle_release,
             recognizer_stop_continuous_recognition_async_wait_for,
         )
     }
@@ -153,7 +155,9 @@ impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
         AsyncResultHandle::create(
             self.get_handle(),
             recognizer_recognize_once_async,
+            recognizer_async_handle_release,
             recognizer_recognize_once_async_wait_for,
+            recognizer_result_handle_release,
         )
     }
 
