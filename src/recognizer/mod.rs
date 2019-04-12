@@ -246,6 +246,10 @@ impl<E, C> AbstractAsyncRecognizer<E, C> {
 pub struct RecognizeOnceAsyncStart(SPXRECOHANDLE);
 
 impl AsyncStart for RecognizeOnceAsyncStart {
+    fn name() -> &'static str {
+        "RecognizeOnceAsyncHandle"
+    }
+
     unsafe fn async_start(&self, hasync: &mut SPXASYNCHANDLE) -> SPXHR {
         recognizer_recognize_once_async(self.0, hasync)
     }
@@ -254,6 +258,10 @@ impl AsyncStart for RecognizeOnceAsyncStart {
 pub struct StartContinuousRecognitionAsyncStart(SPXRECOHANDLE);
 
 impl AsyncStart for StartContinuousRecognitionAsyncStart {
+    fn name() -> &'static str {
+        "StartContinuousRecognitionAsyncHandle"
+    }
+
     unsafe fn async_start(&self, hasync: &mut SPXASYNCHANDLE) -> SPXHR {
         recognizer_start_continuous_recognition_async(self.0, hasync)
     }
@@ -262,6 +270,10 @@ impl AsyncStart for StartContinuousRecognitionAsyncStart {
 pub struct StopContinuousRecognitionAsyncStart(SPXRECOHANDLE);
 
 impl AsyncStart for StopContinuousRecognitionAsyncStart {
+    fn name() -> &'static str {
+        "StopContinuousRecognitionAsyncHandle"
+    }
+
     unsafe fn async_start(&self, hasync: &mut SPXASYNCHANDLE) -> SPXHR {
         recognizer_stop_continuous_recognition_async(self.0, hasync)
     }

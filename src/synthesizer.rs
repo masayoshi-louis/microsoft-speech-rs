@@ -1,7 +1,7 @@
 use std::ffi::CString;
 use std::sync::Arc;
 
-use crate::{convert_err, FfiObject, FromHandle, SmartHandle, SpeechConfig, SpxError, SPXHANDLE_INVALID, AsyncResultHandle};
+use crate::{AsyncResultHandle, convert_err, FfiObject, FromHandle, SmartHandle, SpeechConfig, SpxError, SPXHANDLE_INVALID};
 use crate::async_handle::AsyncStart;
 use crate::audio::AudioConfig;
 use crate::speech_api::*;
@@ -77,6 +77,10 @@ pub struct SpeakAsyncStart {
 }
 
 impl AsyncStart for SpeakAsyncStart {
+    fn name() -> &'static str {
+        "TextToSpeechAsyncHandle"
+    }
+
     unsafe fn async_start(&self, hasync: &mut SPXASYNCHANDLE) -> SPXHR {
         (self.f)(self.handle.get(), self.text.as_ptr(), self.text_len as u32, hasync)
     }

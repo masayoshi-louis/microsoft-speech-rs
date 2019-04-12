@@ -19,6 +19,8 @@ const RESULT_POLL_INTERVAL_MS: u64 = 100;
 const SPXERR_TIMEOUT: SPXHR = 0x06;
 
 pub trait AsyncStart {
+    fn name() -> &'static str;
+
     unsafe fn async_start(&self, hasync: &mut SPXASYNCHANDLE) -> SPXHR;
 }
 
@@ -76,7 +78,7 @@ impl<S: AsyncStart, W: AsyncWait> Future for BaseAsyncHandle<S, W> {
                 convert_err(self.async_start.async_start(&mut handle))?
             }
             self.handle = Some(SmartHandle::create(
-                "BaseAsyncHandle",
+                S::name(),
                 handle,
                 self.release_fn,
             ));
