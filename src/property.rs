@@ -18,6 +18,11 @@ pub enum PropertyId
     SpeechServiceAuthorizationType = 1004,
     SpeechServiceConnectionEndpointId = 1005,
 
+    SpeechServiceConnectionProxyHostName = 1100,
+    SpeechServiceConnectionProxyPort = 1101,
+    SpeechServiceConnectionProxyUserName = 1102,
+    SpeechServiceConnectionProxyPassword = 1103,
+
     SpeechServiceConnectionTranslationToLanguages = 2000,
     SpeechServiceConnectionTranslationVoice = 2001,
     SpeechServiceConnectionTranslationFeatures = 2002,
@@ -27,17 +32,30 @@ pub enum PropertyId
     SpeechServiceConnectionRecoLanguage = 3001,
     SpeechSessionId = 3002,
 
+    SpeechServiceConnectionSynthLanguage = 3100,
+    SpeechServiceConnectionSynthVoice = 3101,
+    SpeechServiceConnectionSynthOutputFormat = 3102,
+
     SpeechServiceResponseRequestDetailedResultTrueFalse = 4000,
     SpeechServiceResponseRequestProfanityFilterTrueFalse = 4001,
 
     SpeechServiceResponseJsonResult = 5000,
     SpeechServiceResponseJsonErrorDetails = 5001,
+    SpeechServiceResponseRecognitionLatencyMs = 5002,
 
     CancellationDetailsReason = 6000,
     CancellationDetailsReasonText = 6001,
     CancellationDetailsReasonDetailedText = 6002,
 
     LanguageUnderstandingServiceResponseJsonResult = 7000,
+
+    AudioConfigDeviceNameForCapture = 8000,
+    AudioConfigNumberOfChannelsForCapture = 8001,
+    AudioConfigSampleRateForCapture = 8002,
+    AudioConfigBitsPerSampleForCapture = 8003,
+    AudioConfigAudioSource = 8004,
+
+    SpeechLogFilename = 9001,
 }
 
 #[derive(Debug)]
