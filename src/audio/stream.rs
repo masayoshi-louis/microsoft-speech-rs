@@ -3,7 +3,6 @@ use std::ops::Deref;
 use std::ops::DerefMut;
 use std::slice;
 use std::sync::Arc;
-use std::sync::Weak;
 
 use crate::audio::AudioStreamFormat;
 use crate::convert_err;
@@ -26,7 +25,7 @@ impl AudioInputStream {
     pub fn create_push_stream(format: Option<AudioStreamFormat>) -> Result<(Box<dyn AudioInputStream>, impl AudioStreamSink), SpxError> {
         let stream = PushAudioInputStream::create(format)?;
         let sink = PushAudioInputStreamSink {
-            handle: Arc::downgrade(&stream.handle),
+            handle: stream.handle.clone(),
         };
         Ok((Box::new(stream), sink))
     }
@@ -111,27 +110,21 @@ impl Drop for PushAudioInputStream {
 unsafe impl Send for PushAudioInputStream {}
 
 pub struct PushAudioInputStreamSink {
-    handle: Weak<SmartHandle<SPXAUDIOSTREAMHANDLE>>,
+    handle: Arc<SmartHandle<SPXAUDIOSTREAMHANDLE>>,
 }
 
 impl AudioStreamSink for PushAudioInputStreamSink {
     fn write(&mut self, buf: impl AsRef<[u8]>) -> Result<(), SpxError> {
-        match self.handle.upgrade() {
-            None => Err(SpxError::StreamDropped),
-            Some(handle) => unsafe {
-                let buf = buf.as_ref();
-                let ptr = buf.as_ptr() as *mut u8;
-                convert_err(push_audio_input_stream_write(handle.get(), ptr, buf.len() as u32))
-            }
+        unsafe {
+            let buf = buf.as_ref();
+            let ptr = buf.as_ptr() as *mut u8;
+            convert_err(push_audio_input_stream_write(self.handle.get(), ptr, buf.len() as u32))
         }
     }
 
     fn close(&mut self) -> Result<(), SpxError> {
-        match self.handle.upgrade() {
-            None => Err(SpxError::StreamDropped),
-            Some(handle) => unsafe {
-                convert_err(push_audio_input_stream_close(handle.get()))
-            }
+        unsafe {
+            convert_err(push_audio_input_stream_close(self.handle.get()))
         }
     }
 }
@@ -139,11 +132,9 @@ impl AudioStreamSink for PushAudioInputStreamSink {
 impl Drop for PushAudioInputStreamSink {
     #[allow(unused_must_use)]
     fn drop(&mut self) {
-        if let Some(handle) = self.handle.upgrade() {
-            unsafe {
-                if audio_stream_is_handle_valid(handle.get()) {
-                    push_audio_input_stream_close(handle.get());
-                }
+        unsafe {
+            if audio_stream_is_handle_valid(self.handle.get()) {
+                push_audio_input_stream_close(self.handle.get());
             }
         }
     }
