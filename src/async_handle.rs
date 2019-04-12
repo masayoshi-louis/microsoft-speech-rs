@@ -18,6 +18,10 @@ const RESULT_POLL_INTERVAL_MS: u64 = 100;
 
 const SPXERR_TIMEOUT: SPXHR = 0x06;
 
+pub trait AsyncStart {
+    unsafe fn async_start(&self, hasync: &mut SPXASYNCHANDLE) -> SPXHR;
+}
+
 pub trait AsyncWait {
     unsafe fn async_wait(&self, hasync: SPXASYNCHANDLE, timeout: u32) -> SPXHR;
 }
@@ -32,39 +36,36 @@ impl AsyncWait for AsyncWaitFn {
     }
 }
 
-pub struct BaseAsyncHandle<W> {
+pub struct BaseAsyncHandle<S, W> {
     handle: Option<SmartHandle<SPXASYNCHANDLE>>,
     release_fn: unsafe extern "C" fn(SPXASYNCHANDLE) -> SPXHR,
     timer: Interval,
     async_wait: W,
     // for lazy initialization
-    init_handle: SPXHANDLE,
-    init_fn: unsafe extern "C" fn(SPXHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
+    async_start: S,
 }
 
-unsafe impl<W> Sync for BaseAsyncHandle<W> {}
+unsafe impl<S, W> Sync for BaseAsyncHandle<S, W> {}
 
-unsafe impl<W> Send for BaseAsyncHandle<W> {}
+unsafe impl<S, W> Send for BaseAsyncHandle<S, W> {}
 
-impl<W: AsyncWait> BaseAsyncHandle<W> {
+impl<S: AsyncStart, W: AsyncWait> BaseAsyncHandle<S, W> {
     pub(crate)
-    fn create(init_handle: SPXRECOHANDLE,
-              init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
+    fn create(async_start: S,
               release_fn: unsafe extern "C" fn(SPXASYNCHANDLE) -> SPXHR,
               async_wait: W,
-              poll_interval: Duration) -> Result<BaseAsyncHandle<W>, SpxError> {
+              poll_interval: Duration) -> Result<BaseAsyncHandle<S, W>, SpxError> {
         Ok(BaseAsyncHandle {
             handle: None,
             release_fn,
             timer: Interval::new(Instant::now(), poll_interval),
             async_wait,
-            init_handle,
-            init_fn,
+            async_start,
         })
     }
 }
 
-impl<W: AsyncWait> Future for BaseAsyncHandle<W> {
+impl<S: AsyncStart, W: AsyncWait> Future for BaseAsyncHandle<S, W> {
     type Item = ();
     type Error = SpxError;
 
@@ -72,7 +73,7 @@ impl<W: AsyncWait> Future for BaseAsyncHandle<W> {
         if self.handle.is_none() {
             let mut handle = SPXHANDLE_INVALID;
             unsafe {
-                convert_err((self.init_fn)(self.init_handle, &mut handle))?;
+                convert_err(self.async_start.async_start(&mut handle))?
             }
             self.handle = Some(SmartHandle::create(
                 "BaseAsyncHandle",
@@ -97,21 +98,19 @@ impl<W: AsyncWait> Future for BaseAsyncHandle<W> {
     }
 }
 
-pub struct AsyncHandle {
-    base: BaseAsyncHandle<AsyncWaitFn>,
+pub struct AsyncHandle<S> {
+    base: BaseAsyncHandle<S, AsyncWaitFn>,
 }
 
-impl AsyncHandle {
+impl<S: AsyncStart> AsyncHandle<S> {
     #[inline]
     pub(crate)
-    fn create(init_handle: SPXRECOHANDLE,
-              init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
+    fn create(async_start: S,
               release_fn: unsafe extern "C" fn(SPXASYNCHANDLE) -> SPXHR,
-              wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32) -> SPXHR) -> Result<AsyncHandle, SpxError> {
+              wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32) -> SPXHR) -> Result<AsyncHandle<S>, SpxError> {
         Ok(AsyncHandle {
             base: BaseAsyncHandle::create(
-                init_handle,
-                init_fn,
+                async_start,
                 release_fn,
                 AsyncWaitFn { wait_fn },
                 Duration::from_millis(ACTION_POLL_INTERVAL_MS),
@@ -120,7 +119,7 @@ impl AsyncHandle {
     }
 }
 
-impl Future for AsyncHandle {
+impl<S: AsyncStart> Future for AsyncHandle<S> {
     type Item = ();
     type Error = SpxError;
 
@@ -140,27 +139,26 @@ impl AsyncWait for AsyncResultWait {
     }
 }
 
-pub struct AsyncResultHandle<V> {
-    base: BaseAsyncHandle<AsyncResultWait>,
+pub struct AsyncResultHandle<S, V> {
+    base: BaseAsyncHandle<S, AsyncResultWait>,
     result_handle: Option<Box<SPXRESULTHANDLE>>,
     result_release_fn: unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR,
     phantom_v: PhantomData<V>,
 }
 
-impl<V> AsyncResultHandle<V> {
+impl<S: AsyncStart, V> AsyncResultHandle<S, V> {
     #[inline]
     pub(crate)
-    fn create(init_handle: SPXRECOHANDLE,
-              init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
+    fn create(async_start: S,
               release_fn: unsafe extern "C" fn(SPXASYNCHANDLE) -> SPXHR,
               wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32, *mut SPXRESULTHANDLE) -> SPXHR,
-              result_release_fn: unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR) -> Result<AsyncResultHandle<V>, SpxError> {
+              result_release_fn: unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR)
+              -> Result<AsyncResultHandle<S, V>, SpxError> {
         let mut result_handle = Box::new(SPXHANDLE_INVALID);
         let async_wait = AsyncResultWait { wait_fn, result_handle_ptr: &mut *result_handle };
         Ok(AsyncResultHandle {
             base: BaseAsyncHandle::create(
-                init_handle,
-                init_fn,
+                async_start,
                 release_fn,
                 async_wait,
                 Duration::from_millis(RESULT_POLL_INTERVAL_MS),
@@ -172,7 +170,7 @@ impl<V> AsyncResultHandle<V> {
     }
 }
 
-impl<V> Future for AsyncResultHandle<V>
+impl<S: AsyncStart, V> Future for AsyncResultHandle<S, V>
     where V: FromHandle<SPXRESULTHANDLE, SpxError> {
     type Item = V;
     type Error = SpxError;
@@ -190,7 +188,7 @@ impl<V> Future for AsyncResultHandle<V>
     }
 }
 
-impl<V> Drop for AsyncResultHandle<V> {
+impl<S, V> Drop for AsyncResultHandle<S, V> {
     fn drop(&mut self) {
         if let Some(ref h) = self.result_handle {
             let h = **h;
