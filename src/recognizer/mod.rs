@@ -158,6 +158,7 @@ impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
             recognizer_async_handle_release,
             recognizer_recognize_once_async_wait_for,
             recognizer_result_handle_release,
+            "RecognitionResult",
         )
     }
 

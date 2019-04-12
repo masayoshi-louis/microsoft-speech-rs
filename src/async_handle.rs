@@ -145,6 +145,7 @@ pub struct AsyncResultHandle<V> {
     base: BaseAsyncHandle<AsyncResultWait>,
     result_handle: Option<Box<SPXRESULTHANDLE>>,
     result_release_fn: unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR,
+    result_handle_name: &'static str,
     phantom_v: PhantomData<V>,
 }
 
@@ -155,7 +156,8 @@ impl<V> AsyncResultHandle<V> {
               init_fn: unsafe extern "C" fn(SPXRECOHANDLE, *mut SPXASYNCHANDLE) -> SPXHR,
               release_fn: unsafe extern "C" fn(SPXASYNCHANDLE) -> SPXHR,
               wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32, *mut SPXRESULTHANDLE) -> SPXHR,
-              result_release_fn: unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR) -> Result<AsyncResultHandle<V>, SpxError> {
+              result_release_fn: unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR,
+              result_handle_name: &'static str) -> Result<AsyncResultHandle<V>, SpxError> {
         let mut result_handle = Box::new(SPXHANDLE_INVALID);
         let async_wait = AsyncResultWait { wait_fn, result_handle_ptr: &mut *result_handle };
         Ok(AsyncResultHandle {
@@ -168,6 +170,7 @@ impl<V> AsyncResultHandle<V> {
             )?,
             result_handle: Some(result_handle),
             result_release_fn,
+            result_handle_name,
             phantom_v: PhantomData,
         })
     }
@@ -185,7 +188,7 @@ impl<V> Future for AsyncResultHandle<V>
                 let result_handle =
                     std::mem::replace(&mut self.result_handle, None);
                 let smart_handle = Arc::new(SmartHandle::create(
-                    "RecognitionResult",
+                    self.result_handle_name,
                     *result_handle.expect("result_handle is none"),
                     self.result_release_fn,
                 ));
