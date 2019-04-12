@@ -78,15 +78,17 @@ pub trait AsyncRecognizer<R, E, C>: Deref<Target=dyn Recognizer> {
 }
 
 struct BaseRecognizer {
-    handle: SmartHandle<SPXRECOHANDLE>,
+    handle: Arc<SmartHandle<SPXRECOHANDLE>>,
 }
 
 unsafe impl Sync for BaseRecognizer {}
 
+unsafe impl Send for BaseRecognizer {}
+
 impl BaseRecognizer {
     fn create(handle: SPXRECOHANDLE) -> Result<BaseRecognizer, SpxError> {
         Ok(BaseRecognizer {
-            handle: SmartHandle::create("Recognizer", handle, recognizer_handle_release)
+            handle: Arc::new(SmartHandle::create("Recognizer", handle, recognizer_handle_release))
         })
     }
 }
@@ -137,7 +139,7 @@ impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
         self.set_callback(&self.recognizing_sender, recognizer_recognizing_set_callback)?;
         self.set_callback(&self.recognized_sender, recognizer_recognized_set_callback)?;
         AsyncHandle::create(
-            StartContinuousRecognitionAsyncStart(self.get_handle()),
+            StartContinuousRecognitionAsyncStart(self.base.handle.clone()),
             recognizer_async_handle_release,
             recognizer_start_continuous_recognition_async_wait_for,
         )
@@ -146,7 +148,7 @@ impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
     fn stop_continuous_recognition(&mut self)
                                    -> Result<AsyncHandle<StopContinuousRecognitionAsyncStart>, SpxError> {
         AsyncHandle::create(
-            StopContinuousRecognitionAsyncStart(self.get_handle()),
+            StopContinuousRecognitionAsyncStart(self.base.handle.clone()),
             recognizer_async_handle_release,
             recognizer_stop_continuous_recognition_async_wait_for,
         )
@@ -155,7 +157,7 @@ impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
     fn recognize_once_async(&mut self)
                             -> Result<AsyncResultHandle<RecognizeOnceAsyncStart, R>, SpxError> {
         AsyncResultHandle::create(
-            RecognizeOnceAsyncStart(self.get_handle()),
+            RecognizeOnceAsyncStart(self.base.handle.clone()),
             recognizer_async_handle_release,
             recognizer_recognize_once_async_wait_for,
             recognizer_result_handle_release,
@@ -243,7 +245,7 @@ impl<E, C> AbstractAsyncRecognizer<E, C> {
     }
 }
 
-pub struct RecognizeOnceAsyncStart(SPXRECOHANDLE);
+pub struct RecognizeOnceAsyncStart(Arc<SmartHandle<SPXRECOHANDLE>>);
 
 impl AsyncStart for RecognizeOnceAsyncStart {
     fn name() -> &'static str {
@@ -251,11 +253,11 @@ impl AsyncStart for RecognizeOnceAsyncStart {
     }
 
     unsafe fn async_start(&self, hasync: &mut SPXASYNCHANDLE) -> SPXHR {
-        recognizer_recognize_once_async(self.0, hasync)
+        recognizer_recognize_once_async(self.0.get(), hasync)
     }
 }
 
-pub struct StartContinuousRecognitionAsyncStart(SPXRECOHANDLE);
+pub struct StartContinuousRecognitionAsyncStart(Arc<SmartHandle<SPXRECOHANDLE>>);
 
 impl AsyncStart for StartContinuousRecognitionAsyncStart {
     fn name() -> &'static str {
@@ -263,11 +265,11 @@ impl AsyncStart for StartContinuousRecognitionAsyncStart {
     }
 
     unsafe fn async_start(&self, hasync: &mut SPXASYNCHANDLE) -> SPXHR {
-        recognizer_start_continuous_recognition_async(self.0, hasync)
+        recognizer_start_continuous_recognition_async(self.0.get(), hasync)
     }
 }
 
-pub struct StopContinuousRecognitionAsyncStart(SPXRECOHANDLE);
+pub struct StopContinuousRecognitionAsyncStart(Arc<SmartHandle<SPXRECOHANDLE>>);
 
 impl AsyncStart for StopContinuousRecognitionAsyncStart {
     fn name() -> &'static str {
@@ -275,7 +277,7 @@ impl AsyncStart for StopContinuousRecognitionAsyncStart {
     }
 
     unsafe fn async_start(&self, hasync: &mut SPXASYNCHANDLE) -> SPXHR {
-        recognizer_stop_continuous_recognition_async(self.0, hasync)
+        recognizer_stop_continuous_recognition_async(self.0.get(), hasync)
     }
 }
 

@@ -19,17 +19,12 @@ type R = RecognitionResult;
 type E = RecognitionResultEvent<R>;
 type C = RecognitionCanceledEvent;
 
-pub struct SpeechRecognizer<CFG> {
+pub struct SpeechRecognizer {
     base: AbstractAsyncRecognizer<E, C>,
-    #[allow(unused)]
-    config: CFG,
-    #[allow(unused)]
-    audio: Option<AudioConfig>,
 }
 
-impl<CFG> SpeechRecognizer<CFG>
-    where CFG: Borrow<SpeechConfig> {
-    pub fn from_config(config: CFG, audio: Option<AudioConfig>) -> Result<SpeechRecognizer<CFG>, SpxError> {
+impl SpeechRecognizer {
+    pub fn from_config(config: impl Borrow<SpeechConfig>, audio: Option<AudioConfig>) -> Result<SpeechRecognizer, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
         unsafe {
             convert_err(
@@ -42,13 +37,11 @@ impl<CFG> SpeechRecognizer<CFG>
         }
         Ok(SpeechRecognizer {
             base: AbstractAsyncRecognizer::create(handle)?,
-            config,
-            audio,
         })
     }
 }
 
-impl<CFG> Deref for SpeechRecognizer<CFG> {
+impl Deref for SpeechRecognizer {
     type Target = dyn AsyncRecognizer<R, E, C, Target=dyn Recognizer>;
 
     fn deref(&self) -> &Self::Target {
@@ -56,7 +49,7 @@ impl<CFG> Deref for SpeechRecognizer<CFG> {
     }
 }
 
-impl<CFG> DerefMut for SpeechRecognizer<CFG> {
+impl DerefMut for SpeechRecognizer {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
     }
