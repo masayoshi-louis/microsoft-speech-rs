@@ -17,7 +17,7 @@ use std::os::raw::c_char;
 
 pub use crate::async_handle::AsyncHandle;
 pub use crate::async_handle::AsyncResultHandle;
-pub use crate::config::SpeechConfig;
+pub use crate::config::{SpeechConfig, SpeechSynthesisOutputFormat};
 pub use crate::property::PropertyBag;
 pub use crate::property::PropertyId;
 use crate::speech_api::*;
