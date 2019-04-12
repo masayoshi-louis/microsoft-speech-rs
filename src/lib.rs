@@ -24,6 +24,7 @@ use crate::speech_api::*;
 
 pub mod audio;
 pub mod recognizer;
+pub mod synthesizer;
 mod async_handle;
 mod speech_api;
 mod property;
@@ -196,11 +197,8 @@ impl<T: Copy + Debug> Display for SmartHandle<T> {
 
 unsafe impl<T: Copy + Debug> Send for SmartHandle<T> {}
 
-pub trait FromHandle: Sized {
-    type Handle;
-    type Err;
-
-    fn from_handle(handle: Self::Handle) -> Result<Self, Self::Err>;
+pub trait FromHandle<H, E>: Sized {
+    fn from_handle(handle: H) -> Result<Self, E>;
 }
 
 pub struct FfiObject {

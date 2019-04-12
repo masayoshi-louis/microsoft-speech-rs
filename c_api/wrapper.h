@@ -22,5 +22,6 @@
 #include <speechapi_c_session.h>
 #include <speechapi_c_connection.h>
 #include <speechapi_c_speech_config.h>
+#include <speechapi_c_synthesizer.h>
 #include <spxerror.h>
 #include <spxdebug.h>
