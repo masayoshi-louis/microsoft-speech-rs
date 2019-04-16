@@ -7,7 +7,7 @@ use std::time::Duration;
 use futures::sync::mpsc::{channel, Receiver, Sender};
 use num::FromPrimitive;
 
-use crate::{AsyncHandle, AsyncResultHandle, convert_err};
+use crate::{AsyncHandle, AsyncResultHandle, convert_err, ResultHandleSupport};
 use crate::async_handle::AsyncStart;
 use crate::FromHandle;
 use crate::recognizer::events::EventFactory;
@@ -38,7 +38,8 @@ pub trait Recognizer: Send + Sync {
 pub trait AsyncRecognizer<R, E, C>: Deref<Target=dyn Recognizer> {
     fn start_continuous_recognition(&mut self) -> Result<AsyncHandle<StartContinuousRecognitionAsyncStart>, SpxError>;
     fn stop_continuous_recognition(&mut self) -> Result<AsyncHandle<StopContinuousRecognitionAsyncStart>, SpxError>;
-    fn recognize_once_async(&mut self) -> Result<AsyncResultHandle<RecognizeOnceAsyncStart, R>, SpxError>;
+    fn recognize_once_async(&mut self) -> Result<AsyncResultHandle<RecognizeOnceAsyncStart, R>, SpxError>
+        where R: ResultHandleSupport;
 
     fn set_recognizing_channel(&mut self, v: Option<Box<Sender<E>>>);
     fn set_recognized_channel(&mut self, v: Option<Box<Sender<E>>>);
@@ -152,13 +153,11 @@ impl<R, E, C> AsyncRecognizer<R, E, C> for AbstractAsyncRecognizer<E, C>
         )
     }
 
-    fn recognize_once_async(&mut self)
-                            -> Result<AsyncResultHandle<RecognizeOnceAsyncStart, R>, SpxError> {
+    fn recognize_once_async(&mut self) -> Result<AsyncResultHandle<RecognizeOnceAsyncStart, R>, SpxError>
+        where R: ResultHandleSupport {
         AsyncResultHandle::create(
             RecognizeOnceAsyncStart(self.get_handle()),
             recognizer_async_handle_release,
-            recognizer_recognize_once_async_wait_for,
-            recognizer_result_handle_release,
         )
     }
 
@@ -340,8 +339,18 @@ impl FromHandle<SPXRESULTHANDLE, SpxError> for RecognitionResult {
         RecognitionResult::create(Arc::new(SmartHandle::create(
             "RecognitionResult",
             handle,
-            recognizer_result_handle_release,
+            RecognitionResult::release_fn(),
         )))
+    }
+}
+
+impl ResultHandleSupport for RecognitionResult {
+    fn async_wait_fn() -> unsafe extern "C" fn(SPXASYNCHANDLE, u32, *mut SPXRESULTHANDLE) -> SPXHR {
+        recognizer_recognize_once_async_wait_for
+    }
+
+    fn release_fn() -> unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR {
+        recognizer_result_handle_release
     }
 }
 

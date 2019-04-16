@@ -201,6 +201,12 @@ pub trait FromHandle<H, E>: Sized {
     fn from_handle(handle: H) -> Result<Self, E>;
 }
 
+pub trait ResultHandleSupport {
+    fn async_wait_fn() -> unsafe extern "C" fn(SPXASYNCHANDLE, u32, *mut SPXRESULTHANDLE) -> SPXHR;
+
+    fn release_fn() -> unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR;
+}
+
 pub struct FfiObject {
     pub ptr: *mut u8,
     pub size: usize,

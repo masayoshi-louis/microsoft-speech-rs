@@ -6,7 +6,7 @@ use std::time::Instant;
 use futures::prelude::*;
 use tokio::timer::Interval;
 
-use crate::convert_err;
+use crate::{convert_err, ResultHandleSupport};
 use crate::FromHandle;
 use crate::SmartHandle;
 use crate::speech_api::*;
@@ -141,23 +141,23 @@ impl AsyncWait for AsyncResultWait {
     }
 }
 
-pub struct AsyncResultHandle<S, V> {
+pub struct AsyncResultHandle<S, V: ResultHandleSupport> {
     base: BaseAsyncHandle<S, AsyncResultWait>,
     result_handle: Option<Box<SPXRESULTHANDLE>>,
-    result_release_fn: unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR,
     phantom_v: PhantomData<V>,
 }
 
-impl<S: AsyncStart, V> AsyncResultHandle<S, V> {
+impl<S: AsyncStart, V: ResultHandleSupport> AsyncResultHandle<S, V> {
     #[inline]
     pub(crate)
     fn create(async_start: S,
-              release_fn: unsafe extern "C" fn(SPXASYNCHANDLE) -> SPXHR,
-              wait_fn: unsafe extern "C" fn(SPXASYNCHANDLE, u32, *mut SPXRESULTHANDLE) -> SPXHR,
-              result_release_fn: unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR)
+              release_fn: unsafe extern "C" fn(SPXASYNCHANDLE) -> SPXHR)
               -> Result<AsyncResultHandle<S, V>, SpxError> {
         let mut result_handle = Box::new(SPXHANDLE_INVALID);
-        let async_wait = AsyncResultWait { wait_fn, result_handle_ptr: &mut *result_handle };
+        let async_wait = AsyncResultWait {
+            wait_fn: V::async_wait_fn(),
+            result_handle_ptr: &mut *result_handle,
+        };
         Ok(AsyncResultHandle {
             base: BaseAsyncHandle::create(
                 async_start,
@@ -166,14 +166,15 @@ impl<S: AsyncStart, V> AsyncResultHandle<S, V> {
                 Duration::from_millis(RESULT_POLL_INTERVAL_MS),
             )?,
             result_handle: Some(result_handle),
-            result_release_fn,
             phantom_v: PhantomData,
         })
     }
 }
 
-impl<S: AsyncStart, V> Future for AsyncResultHandle<S, V>
-    where V: FromHandle<SPXRESULTHANDLE, SpxError> {
+impl<S, V> Future for AsyncResultHandle<S, V>
+    where S: AsyncStart,
+          V: FromHandle<SPXRESULTHANDLE, SpxError>,
+          V: ResultHandleSupport {
     type Item = V;
     type Error = SpxError;
 
@@ -190,13 +191,13 @@ impl<S: AsyncStart, V> Future for AsyncResultHandle<S, V>
     }
 }
 
-impl<S, V> Drop for AsyncResultHandle<S, V> {
+impl<S, V: ResultHandleSupport> Drop for AsyncResultHandle<S, V> {
     fn drop(&mut self) {
         if let Some(ref h) = self.result_handle {
             let h = **h;
             if h != SPXHANDLE_INVALID {
                 unsafe {
-                    (self.result_release_fn)(h);
+                    (V::release_fn())(h);
                 }
             }
         }

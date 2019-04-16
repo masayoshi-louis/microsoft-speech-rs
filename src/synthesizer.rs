@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 use std::ffi::CString;
 use std::sync::Arc;
 
-use crate::{AsyncResultHandle, convert_err, FfiObject, FromHandle, SmartHandle, SpeechConfig, SpxError, SPXHANDLE_INVALID};
+use crate::{AsyncResultHandle, convert_err, FfiObject, FromHandle, ResultHandleSupport, SmartHandle, SpeechConfig, SpxError, SPXHANDLE_INVALID};
 use crate::async_handle::AsyncStart;
 use crate::audio::AudioConfig;
 use crate::speech_api::*;
@@ -64,8 +64,6 @@ impl SpeechSynthesizer {
         AsyncResultHandle::create(
             async_start,
             synthesizer_async_handle_release,
-            synthesizer_speak_async_wait_for,
-            synthesizer_result_handle_release,
         )
     }
 }
@@ -126,8 +124,18 @@ impl FromHandle<SPXRESULTHANDLE, SpxError> for SpeechSynthesisResult {
             handle: SmartHandle::create(
                 "SpeechSynthesisResult",
                 handle,
-                synthesizer_result_handle_release,
+                SpeechSynthesisResult::release_fn(),
             )
         })
+    }
+}
+
+impl ResultHandleSupport for SpeechSynthesisResult {
+    fn async_wait_fn() -> unsafe extern "C" fn(SPXASYNCHANDLE, u32, *mut SPXRESULTHANDLE) -> SPXHR {
+        synthesizer_speak_async_wait_for
+    }
+
+    fn release_fn() -> unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR {
+        synthesizer_result_handle_release
     }
 }
