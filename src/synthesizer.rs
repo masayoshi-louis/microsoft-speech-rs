@@ -2,9 +2,12 @@ use std::borrow::Borrow;
 use std::ffi::CString;
 use std::sync::Arc;
 
+use num::FromPrimitive;
+
 use crate::{AsyncResultHandle, convert_err, FfiObject, FromHandle, ResultHandleSupport, SmartHandle, SpeechConfig, SpxError, SPXHANDLE_INVALID};
 use crate::async_handle::AsyncStart;
 use crate::audio::AudioConfig;
+use crate::ResultReason;
 use crate::speech_api::*;
 
 type SpeakAsyncFn = unsafe extern "C" fn(
@@ -90,6 +93,11 @@ pub struct SpeechSynthesisResult {
 }
 
 impl SpeechSynthesisResult {
+    pub fn reason(&self) -> Result<ResultReason, SpxError> {
+        let code = crate::spx_populate(self.get_handle(), result_get_reason)?;
+        return Ok(ResultReason::from_u32(code).expect("unknown reason"));
+    }
+
     pub fn audio_length(&self) -> Result<u32, SpxError> {
         let mut len = 0;
         unsafe {
