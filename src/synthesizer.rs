@@ -106,7 +106,7 @@ pub struct SpeechSynthesisResult {
 
 impl SpeechSynthesisResult {
     pub fn reason(&self) -> Result<ResultReason, SpxError> {
-        let code = crate::spx_populate(self.get_handle(), result_get_reason)?;
+        let code = crate::spx_populate(self.get_handle(), synth_result_get_reason)?;
         return Ok(ResultReason::from_u32(code).expect("unknown reason"));
     }
 
@@ -175,6 +175,7 @@ impl ResultHandleSupport for SpeechSynthesisResult {
     }
 }
 
+#[derive(Debug)]
 pub struct SpeechSynthesisCancellationDetails {
     pub reason: CancellationReason,
     pub err_code: CancellationErrorCode,
