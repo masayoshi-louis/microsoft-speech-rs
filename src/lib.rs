@@ -75,7 +75,7 @@ pub enum ResultReason {
     NoMatch = 0,
 
     /// <summary>
-    /// Indicates that the recognition was canceled. More details can be found using the CancellationDetails object.
+    /// Indicates that the recognition was canceled. More details can be found using the cancellation_details object.
     /// </summary>
     Canceled = 1,
 

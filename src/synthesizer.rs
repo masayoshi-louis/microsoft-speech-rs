@@ -4,7 +4,19 @@ use std::sync::Arc;
 
 use num::FromPrimitive;
 
-use crate::{AsyncResultHandle, convert_err, FfiObject, FromHandle, ResultHandleSupport, SmartHandle, SpeechConfig, SpxError, SPXHANDLE_INVALID};
+use crate::{
+    AsyncResultHandle,
+    CancellationErrorCode,
+    CancellationReason,
+    convert_err,
+    FfiObject,
+    FromHandle,
+    ResultHandleSupport,
+    SmartHandle,
+    SpeechConfig,
+    SpxError,
+    SPXHANDLE_INVALID,
+};
 use crate::async_handle::AsyncStart;
 use crate::audio::AudioConfig;
 use crate::ResultReason;
@@ -120,6 +132,21 @@ impl SpeechSynthesisResult {
         Ok(buff.into_vec(filled_size as usize))
     }
 
+    pub fn cancellation_details(&self) -> Result<SpeechSynthesisCancellationDetails, SpxError> {
+        let reason = {
+            let code = crate::spx_populate(self.get_handle(), synth_result_get_reason_canceled)?;
+            CancellationReason::from_u32(code).expect("unknown reason")
+        };
+        let err_code = {
+            let code = crate::spx_populate(self.get_handle(), synth_result_get_canceled_error_code)?;
+            CancellationErrorCode::from_u32(code).expect("unknown code")
+        };
+        Ok(SpeechSynthesisCancellationDetails {
+            reason,
+            err_code,
+        })
+    }
+
     #[inline(always)]
     pub fn get_handle(&self) -> SPXRESULTHANDLE {
         self.handle.get()
@@ -146,4 +173,9 @@ impl ResultHandleSupport for SpeechSynthesisResult {
     fn release_fn() -> unsafe extern "C" fn(SPXRESULTHANDLE) -> SPXHR {
         synthesizer_result_handle_release
     }
+}
+
+pub struct SpeechSynthesisCancellationDetails {
+    pub reason: CancellationReason,
+    pub err_code: CancellationErrorCode,
 }
