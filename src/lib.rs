@@ -169,7 +169,7 @@ impl<T: Copy + Debug> SmartHandle<T> {
     #[inline(always)]
     fn create(name: &'static str, handle: T, release_fn: unsafe extern "C" fn(T) -> SPXHR) -> SmartHandle<T> {
         let result = SmartHandle { inner: handle, release_fn, name };
-        debug!("Create SmartHandle {}.", result);
+        trace!("Create SmartHandle {}.", result);
         return result;
     }
 
@@ -181,7 +181,7 @@ impl<T: Copy + Debug> SmartHandle<T> {
 
 impl<T: Copy + Debug> Drop for SmartHandle<T> {
     fn drop(&mut self) {
-        debug!("Drop SmartHandle {}.", self);
+        trace!("Drop SmartHandle {}.", self);
         let hr = unsafe { (self.release_fn)(self.inner) };
         if hr != SPX_NOERROR as usize {
             panic!("can not release SmartHandle {}, err={}", self, hr);
