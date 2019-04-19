@@ -174,6 +174,9 @@ impl ResultHandleSupport for SpeechSynthesisResult {
         synthesizer_result_handle_release
     }
 }
+unsafe impl Sync for SpeechSynthesisResult {}
+
+unsafe impl Send for SpeechSynthesisResult {}
 
 #[derive(Debug)]
 pub struct SpeechSynthesisCancellationDetails {
