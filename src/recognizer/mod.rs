@@ -312,7 +312,7 @@ impl RecognitionResult {
     }
 
     pub fn duration(&self) -> Result<Duration, SpxError> {
-        self.populate(result_get_duration).map(Duration::from_micros)
+        self.populate(result_get_duration).map(|v| Duration::from_nanos(v * 100))
     }
 
     #[inline(always)]
