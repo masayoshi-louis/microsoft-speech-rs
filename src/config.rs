@@ -20,10 +20,28 @@ impl SpeechConfig {
         where S1: Into<Vec<u8>>, S2: Into<Vec<u8>> {
         let c_sub = CString::new(subscription)?;
         let c_region = CString::new(region)?;
+        Self::create(|handle| {
+            unsafe {
+                convert_err(speech_config_from_subscription(handle, c_sub.as_ptr(), c_region.as_ptr()))
+            }
+        })
+    }
+
+    pub fn from_endpoint<S1, S2>(endpoint: S1, subscription: S2) -> Result<SpeechConfig, SpxError>
+        where S1: Into<Vec<u8>>, S2: Into<Vec<u8>> {
+        let c_ep = CString::new(endpoint)?;
+        let c_sub = CString::new(subscription)?;
+        Self::create(|handle| {
+            unsafe {
+                convert_err(speech_config_from_endpoint(handle, c_ep.as_ptr(), c_sub.as_ptr()))
+            }
+        })
+    }
+
+    #[inline(always)]
+    fn create(f: impl FnOnce(&mut SPXHANDLE) -> Result<(), SpxError>) -> Result<SpeechConfig, SpxError> {
         let mut handle = SPXHANDLE_INVALID;
-        unsafe {
-            convert_err(speech_config_from_subscription(&mut handle, c_sub.as_ptr(), c_region.as_ptr()))?;
-        }
+        f(&mut handle)?;
         let result = SpeechConfig {
             handle: SmartHandle::create("SpeechConfig", handle, speech_config_release),
             props: PropertyBag::create(handle, speech_config_get_property_bag)?,
